@@ -1,0 +1,176 @@
+import React, { useState, useMemo } from 'react';
+import { Plus, DollarSign, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import CollectionForm from '../components/collections/CollectionForm';
+import { useApp } from '../context/AppContext';
+import { formatDate } from '../utils/storage';
+
+const Collections: React.FC = () => {
+  const { state, dispatch } = useApp();
+  const [showForm, setShowForm] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+
+  const activeStudents = useMemo(() => {
+    return state.students.filter(student => !student.isDeleted);
+  }, [state.students]);
+
+  const getCollectionPayments = (collectionId: string) => {
+    return state.payments.filter(payment => payment.collectionId === collectionId);
+  };
+
+  const getCollectionStats = (collectionId: string) => {
+    const payments = getCollectionPayments(collectionId);
+    const paid = payments.filter(p => p.isPaid).length;
+    const total = payments.length;
+    const collected = payments.filter(p => p.isPaid).reduce((sum, p) => sum + p.amount, 0);
+    const expected = payments.reduce((sum, p) => sum + p.amount, 0);
+    
+    return { paid, total, collected, expected };
+  };
+
+  const togglePayment = (paymentId: string) => {
+    const payment = state.payments.find(p => p.id === paymentId);
+    if (payment) {
+      dispatch({
+        type: 'UPDATE_PAYMENT',
+        payload: {
+          ...payment,
+          isPaid: !payment.isPaid,
+          paidAt: !payment.isPaid ? new Date().toISOString() : undefined
+        }
+      });
+    }
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Collections</h2>
+          <p className="text-sm text-gray-600">Manage student payments</p>
+        </div>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Collection
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        {state.collections.length > 0 ? (
+          state.collections.map((collection) => {
+            const stats = getCollectionStats(collection.id);
+            const isSelected = selectedCollection === collection.id;
+            
+            return (
+              <Card key={collection.id}>
+                <div 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedCollection(isSelected ? null : collection.id)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{collection.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{collection.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-gray-900">
+                        {collection.amount.toLocaleString()} so'm
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center text-gray-600">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      Due: {formatDate(collection.dueDate)}
+                    </div>
+                    <div className="text-blue-600 font-medium">
+                      {stats.paid}/{stats.total} paid ({Math.round((stats.paid / stats.total) * 100)}%)
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600">Collected</span>
+                      <span className="font-medium">
+                        {stats.collected.toLocaleString()} / {stats.expected.toLocaleString()} so'm
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(stats.collected / stats.expected) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {isSelected && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-3">Payment Status</h4>
+                    <div className="space-y-2">
+                      {getCollectionPayments(collection.id).map((payment) => {
+                        const student = activeStudents.find(s => s.id === payment.studentId);
+                        if (!student) return null;
+                        
+                        return (
+                          <div 
+                            key={payment.id}
+                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                          >
+                            <div className="flex items-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePayment(payment.id);
+                                }}
+                                className="mr-3"
+                              >
+                                {payment.isPaid ? (
+                                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                                ) : (
+                                  <XCircle className="w-5 h-5 text-gray-400" />
+                                )}
+                              </button>
+                              <div>
+                                <p className="font-medium text-gray-900">{student.name}</p>
+                                <p className="text-sm text-gray-600">Room {student.room}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-900">
+                                {payment.amount.toLocaleString()} so'm
+                              </p>
+                              {payment.isPaid && payment.paidAt && (
+                                <p className="text-xs text-emerald-600">
+                                  Paid {formatDate(payment.paidAt)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            );
+          })
+        ) : (
+          <Card className="text-center py-8">
+            <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No collections yet</p>
+            <p className="text-sm text-gray-400 mt-1">Create your first collection to get started</p>
+          </Card>
+        )}
+      </div>
+
+      {showForm && (
+        <CollectionForm onClose={() => setShowForm(false)} />
+      )}
+    </div>
+  );
+};
+
+export default Collections;
