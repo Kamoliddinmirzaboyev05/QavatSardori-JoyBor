@@ -22,7 +22,7 @@ const Attendance: React.FC = () => {
     return todayAttendance.find(record => record.studentId === studentId);
   };
 
-  const markAttendance = (studentId: string, status: 'present' | 'absent' | 'late') => {
+  const markAttendance = (studentId: string, status: 'hozir' | 'yoq' | 'kech') => {
     const existingRecord = getStudentAttendance(studentId);
     
     if (existingRecord) {
@@ -43,9 +43,9 @@ const Attendance: React.FC = () => {
   };
 
   const getStatusStats = () => {
-    const present = todayAttendance.filter(a => a.status === 'present').length;
-    const absent = todayAttendance.filter(a => a.status === 'absent').length;
-    const late = todayAttendance.filter(a => a.status === 'late').length;
+    const present = todayAttendance.filter(a => a.status === 'hozir').length;
+    const absent = todayAttendance.filter(a => a.status === 'yoq').length;
+    const late = todayAttendance.filter(a => a.status === 'kech').length;
     const total = activeStudents.length;
     const unmarked = total - present - absent - late;
     
@@ -58,8 +58,8 @@ const Attendance: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Attendance</h2>
-          <p className="text-sm text-gray-600">Mark daily attendance</p>
+          <h2 className="text-xl font-bold text-gray-900">Davomat</h2>
+          <p className="text-sm text-gray-600">Kunlik davomatni belgilash</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ const Attendance: React.FC = () => {
       <Card>
         <div className="flex items-center space-x-2 mb-4">
           <Calendar className="w-5 h-5 text-blue-600" />
-          <label className="text-sm font-medium text-gray-700">Select Date:</label>
+          <label className="text-sm font-medium text-gray-700">Sanani tanlang:</label>
         </div>
         <input
           type="date"
@@ -81,7 +81,7 @@ const Attendance: React.FC = () => {
       {/* Statistics */}
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Statistics for {formatDate(selectedDate)}
+          {formatDate(selectedDate)} uchun statistika
         </h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
@@ -89,7 +89,7 @@ const Attendance: React.FC = () => {
               <CheckCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <p className="text-xl font-bold text-emerald-600">{stats.present}</p>
-            <p className="text-sm text-gray-600">Present</p>
+            <p className="text-sm text-gray-600">Hozir</p>
           </div>
           
           <div className="text-center">
@@ -97,7 +97,7 @@ const Attendance: React.FC = () => {
               <Clock className="w-6 h-6 text-orange-600" />
             </div>
             <p className="text-xl font-bold text-orange-600">{stats.late}</p>
-            <p className="text-sm text-gray-600">Late</p>
+            <p className="text-sm text-gray-600">Kech</p>
           </div>
           
           <div className="text-center">
@@ -105,7 +105,7 @@ const Attendance: React.FC = () => {
               <XCircle className="w-6 h-6 text-red-600" />
             </div>
             <p className="text-xl font-bold text-red-600">{stats.absent}</p>
-            <p className="text-sm text-gray-600">Absent</p>
+            <p className="text-sm text-gray-600">Yo'q</p>
           </div>
           
           <div className="text-center">
@@ -113,14 +113,14 @@ const Attendance: React.FC = () => {
               <div className="w-6 h-6 rounded-full bg-gray-400" />
             </div>
             <p className="text-xl font-bold text-gray-600">{stats.unmarked}</p>
-            <p className="text-sm text-gray-600">Unmarked</p>
+            <p className="text-sm text-gray-600">Belgilanmagan</p>
           </div>
         </div>
         
         {stats.total > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="text-center">
-              <p className="text-sm text-gray-600">Attendance Rate</p>
+              <p className="text-sm text-gray-600">Davomat darajasi</p>
               <p className="text-2xl font-bold text-blue-600">
                 {Math.round((stats.present / stats.total) * 100)}%
               </p>
@@ -140,48 +140,48 @@ const Attendance: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">{student.name}</h3>
-                    <p className="text-sm text-gray-600">Room {student.room}</p>
+                    <p className="text-sm text-gray-600">{student.room}-xona</p>
                   </div>
                 </div>
                 
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
-                    variant={attendance?.status === 'present' ? 'success' : 'secondary'}
+                    variant={attendance?.status === 'hozir' ? 'success' : 'secondary'}
                     className={clsx(
                       "flex-1",
-                      attendance?.status === 'present' && "ring-2 ring-emerald-200"
+                      attendance?.status === 'hozir' && "ring-2 ring-emerald-200"
                     )}
-                    onClick={() => markAttendance(student.id, 'present')}
+                    onClick={() => markAttendance(student.id, 'hozir')}
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
-                    Present
+                    Hozir
                   </Button>
                   
                   <Button
                     size="sm"
-                    variant={attendance?.status === 'late' ? 'warning' : 'secondary'}
+                    variant={attendance?.status === 'kech' ? 'warning' : 'secondary'}
                     className={clsx(
                       "flex-1",
-                      attendance?.status === 'late' && "ring-2 ring-orange-200"
+                      attendance?.status === 'kech' && "ring-2 ring-orange-200"
                     )}
-                    onClick={() => markAttendance(student.id, 'late')}
+                    onClick={() => markAttendance(student.id, 'kech')}
                   >
                     <Clock className="w-4 h-4 mr-1" />
-                    Late
+                    Kech
                   </Button>
                   
                   <Button
                     size="sm"
-                    variant={attendance?.status === 'absent' ? 'danger' : 'secondary'}
+                    variant={attendance?.status === 'yoq' ? 'danger' : 'secondary'}
                     className={clsx(
                       "flex-1",
-                      attendance?.status === 'absent' && "ring-2 ring-red-200"
+                      attendance?.status === 'yoq' && "ring-2 ring-red-200"
                     )}
-                    onClick={() => markAttendance(student.id, 'absent')}
+                    onClick={() => markAttendance(student.id, 'yoq')}
                   >
                     <XCircle className="w-4 h-4 mr-1" />
-                    Absent
+                    Yo'q
                   </Button>
                 </div>
               </Card>
@@ -189,7 +189,7 @@ const Attendance: React.FC = () => {
           })
         ) : (
           <Card className="text-center py-8">
-            <p className="text-gray-500">No students available for attendance</p>
+            <p className="text-gray-500">Davomat uchun talabalar mavjud emas</p>
           </Card>
         )}
       </div>

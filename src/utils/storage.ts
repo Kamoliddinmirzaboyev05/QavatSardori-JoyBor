@@ -30,20 +30,30 @@ export const getCurrentDate = (): string => {
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  const months = [
+    'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun',
+    'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'
+  ];
+  
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
 };
 
 export const formatDateTime = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const months = [
+    'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun',
+    'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'
+  ];
+  
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${day} ${month} ${year}, ${hours}:${minutes}`;
 };

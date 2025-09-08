@@ -19,11 +19,11 @@ const MyRequests: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open':
+      case 'ochiq':
         return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'in_progress':
+      case 'jarayonda':
         return <Clock className="w-5 h-5 text-orange-500" />;
-      case 'resolved':
+      case 'hal_qilindi':
         return <CheckCircle className="w-5 h-5 text-emerald-500" />;
       default:
         return <MessageCircle className="w-5 h-5 text-gray-500" />;
@@ -32,11 +32,11 @@ const MyRequests: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open':
+      case 'ochiq':
         return 'text-red-600 bg-red-50 border-red-200';
-      case 'in_progress':
+      case 'jarayonda':
         return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'resolved':
+      case 'hal_qilindi':
         return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
@@ -45,9 +45,9 @@ const MyRequests: React.FC = () => {
 
   const stats = useMemo(() => {
     const total = myRequests.length;
-    const open = myRequests.filter(r => r.status === 'open').length;
-    const inProgress = myRequests.filter(r => r.status === 'in_progress').length;
-    const resolved = myRequests.filter(r => r.status === 'resolved').length;
+    const open = myRequests.filter(r => r.status === 'ochiq').length;
+    const inProgress = myRequests.filter(r => r.status === 'jarayonda').length;
+    const resolved = myRequests.filter(r => r.status === 'hal_qilindi').length;
     
     return { total, open, inProgress, resolved };
   }, [myRequests]);
@@ -56,25 +56,25 @@ const MyRequests: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">My Requests</h2>
-          <p className="text-sm text-gray-600">Submit and track your requests</p>
+          <h2 className="text-xl font-bold text-gray-900">Mening so'rovlarim</h2>
+          <p className="text-sm text-gray-600">So'rovlarni yuborish va kuzatish</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          New Request
+          Yangi so'rov
         </Button>
       </div>
 
       {/* Statistics */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Request Overview</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">So'rovlar umumiy ko'rinishi</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <AlertCircle className="w-6 h-6 text-red-600" />
             </div>
             <p className="text-2xl font-bold text-red-600">{stats.open}</p>
-            <p className="text-sm text-gray-600">Open</p>
+            <p className="text-sm text-gray-600">Ochiq</p>
           </div>
           
           <div className="text-center">
@@ -82,7 +82,7 @@ const MyRequests: React.FC = () => {
               <Clock className="w-6 h-6 text-orange-600" />
             </div>
             <p className="text-2xl font-bold text-orange-600">{stats.inProgress}</p>
-            <p className="text-sm text-gray-600">In Progress</p>
+            <p className="text-sm text-gray-600">Jarayonda</p>
           </div>
 
           <div className="text-center">
@@ -90,7 +90,7 @@ const MyRequests: React.FC = () => {
               <CheckCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <p className="text-2xl font-bold text-emerald-600">{stats.resolved}</p>
-            <p className="text-sm text-gray-600">Resolved</p>
+            <p className="text-sm text-gray-600">Hal qilindi</p>
           </div>
 
           <div className="text-center">
@@ -98,7 +98,7 @@ const MyRequests: React.FC = () => {
               <MessageCircle className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-            <p className="text-sm text-gray-600">Total</p>
+            <p className="text-sm text-gray-600">Jami</p>
           </div>
         </div>
       </Card>
@@ -121,14 +121,15 @@ const MyRequests: React.FC = () => {
                     <p className="text-xs text-gray-500">
                       {formatDateTime(request.createdAt)}
                       {request.updatedAt && (
-                        <span> • Updated {formatDateTime(request.updatedAt)}</span>
+                        <span> • Yangilandi {formatDateTime(request.updatedAt)}</span>
                       )}
                     </p>
                     
                     <div
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}
                     >
-                      {request.status.replace('_', ' ').toUpperCase()}
+                      {request.status === 'ochiq' ? 'OCHIQ' :
+                       request.status === 'jarayonda' ? 'JARAYONDA' : 'HAL QILINDI'}
                     </div>
                   </div>
                 </div>
@@ -138,9 +139,9 @@ const MyRequests: React.FC = () => {
         ) : (
           <Card className="text-center py-8">
             <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No requests yet</p>
+            <p className="text-gray-500">Hali so'rovlar yo'q</p>
             <p className="text-sm text-gray-400 mt-1">
-              Submit your first request for assistance
+              Yordam uchun birinchi so'rovingizni yuboring
             </p>
           </Card>
         )}

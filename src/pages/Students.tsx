@@ -29,7 +29,7 @@ const Students: React.FC = () => {
   };
 
   const handleDelete = (studentId: string) => {
-    if (confirm('Are you sure you want to delete this student?')) {
+    if (confirm('Haqiqatan ham bu talabani o\'chirmoqchimisiz?')) {
       dispatch({ type: 'DELETE_STUDENT', payload: studentId });
     }
   };
@@ -43,19 +43,19 @@ const Students: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Students</h2>
-          <p className="text-sm text-gray-600">{activeStudents.length} active students</p>
+          <h2 className="text-xl font-bold text-gray-900">Talabalar</h2>
+          <p className="text-sm text-gray-600">{activeStudents.length} faol talaba</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Student
+          Talaba qo'shish
         </Button>
       </div>
 
       <SearchInput
         value={searchTerm}
         onChange={setSearchTerm}
-        placeholder="Search students..."
+        placeholder="Talabalarni qidirish..."
       />
 
       <div className="space-y-3">
@@ -68,7 +68,7 @@ const Students: React.FC = () => {
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
-                      Room {student.room}
+                      {student.room}-xona
                     </div>
                     <div className="flex items-center">
                       <Phone className="w-4 h-4 mr-1" />
@@ -98,7 +98,7 @@ const Students: React.FC = () => {
           ))
         ) : (
           <Card className="text-center py-8">
-            <p className="text-gray-500">No students found</p>
+            <p className="text-gray-500">Talabalar topilmadi</p>
           </Card>
         )}
       </div>

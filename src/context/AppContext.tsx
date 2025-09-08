@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, Request, Role } from '../types';
-import { loadFromStorage, saveToStorage, generateId, getCurrentDate } from '../utils/storage';
+import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request, Role } from '../types';
+import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
 import { mockStudents, mockCollections, mockAnnouncements, mockRequests } from '../utils/mockData';
 
 type AppAction = 
   | { type: 'SET_ROLE'; payload: Role }
   | { type: 'SET_CURRENT_STUDENT'; payload: string }
+  | { type: 'LOAD_DATA'; payload: Partial<AppState> }
   | { type: 'ADD_STUDENT'; payload: Omit<Student, 'id' | 'createdAt'> }
   | { type: 'UPDATE_STUDENT'; payload: Student }
   | { type: 'DELETE_STUDENT'; payload: string }
@@ -20,7 +21,7 @@ type AppAction =
   | { type: 'MARK_ANNOUNCEMENT_READ'; payload: { announcementId: string; studentId: string } };
 
 const initialState: AppState = {
-  role: 'warden',
+  role: 'qavat_sardori',
   students: [],
   attendance: [],
   collections: [],
@@ -42,6 +43,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
     
     case 'SET_CURRENT_STUDENT':
       return { ...state, currentStudentId: action.payload };
+    
+    case 'LOAD_DATA':
+      return { ...state, ...action.payload };
     
     case 'ADD_STUDENT': {
       const newStudent: Student = {
@@ -187,40 +191,80 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     if (storedData.students && storedData.students.length > 0) {
       // Load all data from storage
-      Object.entries(storedData).forEach(([key, value]) => {
-        if (key === 'role') {
-          dispatch({ type: 'SET_ROLE', payload: value as Role });
-        }
-      });
+      dispatch({ type: 'LOAD_DATA', payload: storedData });
     } else {
       // Initialize with mock data
       const initialPayments: Payment[] = [];
+      const initialAttendance: AttendanceRecord[] = [];
+      const initialAnnouncementReads: AnnouncementRead[] = [];
       
-      mockStudents.forEach(student => {
-        mockCollections.forEach(collection => {
+      mockStudents.forEach((student) => {
+        mockCollections.forEach((collection) => {
+          // Create realistic payment patterns
+          const isPaid = Math.random() > 0.3; // 70% chance of being paid
+          const paidAt = isPaid ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() : undefined;
+          
           initialPayments.push({
             id: generateId(),
             collectionId: collection.id,
             studentId: student.id,
             amount: collection.amount,
-            isPaid: Math.random() > 0.5,
-            paidAt: Math.random() > 0.5 ? new Date().toISOString() : undefined,
+            isPaid,
+            paidAt,
             createdAt: new Date().toISOString()
           });
+        });
+
+        // Add mock attendance for last 15 days with realistic patterns
+        for (let i = 0; i < 15; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateString = date.toISOString().split('T')[0];
+          
+          // More realistic attendance patterns
+          let status: 'hozir' | 'yoq' | 'kech';
+          const rand = Math.random();
+          if (rand < 0.75) status = 'hozir'; // 75% present
+          else if (rand < 0.9) status = 'kech'; // 15% late
+          else status = 'yoq'; // 10% absent
+          
+          initialAttendance.push({
+            id: generateId(),
+            studentId: student.id,
+            date: dateString,
+            status,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        // Add some announcement reads
+        mockAnnouncements.forEach((announcement) => {
+          // 60% chance student has read the announcement
+          if (Math.random() > 0.4) {
+            initialAnnouncementReads.push({
+              id: generateId(),
+              announcementId: announcement.id,
+              studentId: student.id,
+              readAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+            });
+          }
         });
       });
 
       const initialData = {
         ...storedData,
+        role: 'qavat_sardori' as Role,
+        currentStudentId: mockStudents[0]?.id,
         students: mockStudents,
         collections: mockCollections,
         payments: initialPayments,
         announcements: mockAnnouncements,
         requests: mockRequests,
-        attendance: [],
-        announcementReads: []
+        attendance: initialAttendance,
+        announcementReads: initialAnnouncementReads
       };
       
+      dispatch({ type: 'LOAD_DATA', payload: initialData });
       saveToStorage(initialData);
     }
   }, []);

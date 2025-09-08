@@ -18,15 +18,15 @@ const Announcements: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Announcements</h2>
+          <h2 className="text-xl font-bold text-gray-900">E'lonlar</h2>
           <p className="text-sm text-gray-600">
-            {state.role === 'warden' ? 'Manage announcements' : 'Latest news and updates'}
+            {state.role === 'qavat_sardori' ? 'E\'lonlarni boshqarish' : 'So\'nggi yangiliklar va yangilanishlar'}
           </p>
         </div>
-        {state.role === 'warden' && (
+        {state.role === 'qavat_sardori' && (
           <Button onClick={() => setShowForm(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            New Announcement
+            Yangi e'lon
           </Button>
         )}
       </div>
@@ -53,7 +53,7 @@ const Announcements: React.FC = () => {
                     <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
                     {announcement.isImportant && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        Important
+                        Muhim
                       </span>
                     )}
                   </div>
@@ -70,11 +70,11 @@ const Announcements: React.FC = () => {
         ) : (
           <Card className="text-center py-8">
             <Megaphone className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No announcements yet</p>
+            <p className="text-gray-500">Hali e'lonlar yo'q</p>
             <p className="text-sm text-gray-400 mt-1">
-              {state.role === 'warden' 
-                ? 'Create your first announcement to communicate with students'
-                : 'Check back later for updates'
+              {state.role === 'qavat_sardori' 
+                ? 'Talabalar bilan muloqot qilish uchun birinchi e\'loningizni yarating'
+                : 'Yangilanishlar uchun keyinroq qarang'
               }
             </p>
           </Card>

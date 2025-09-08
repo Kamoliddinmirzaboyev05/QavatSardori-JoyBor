@@ -47,12 +47,12 @@ const Collections: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Collections</h2>
-          <p className="text-sm text-gray-600">Manage student payments</p>
+          <h2 className="text-xl font-bold text-gray-900">Yig'imlar</h2>
+          <p className="text-sm text-gray-600">Talabalar to'lovlarini boshqarish</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          New Collection
+          Yangi yig'im
         </Button>
       </div>
 
@@ -83,16 +83,16 @@ const Collections: React.FC = () => {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center text-gray-600">
                       <Calendar className="w-4 h-4 mr-1" />
-                      Due: {formatDate(collection.dueDate)}
+                      Muddat: {formatDate(collection.dueDate)}
                     </div>
                     <div className="text-blue-600 font-medium">
-                      {stats.paid}/{stats.total} paid ({Math.round((stats.paid / stats.total) * 100)}%)
+                      {stats.paid}/{stats.total} to'landi ({Math.round((stats.paid / stats.total) * 100)}%)
                     </div>
                   </div>
 
                   <div className="mt-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Collected</span>
+                      <span className="text-gray-600">Yig'ildi</span>
                       <span className="font-medium">
                         {stats.collected.toLocaleString()} / {stats.expected.toLocaleString()} so'm
                       </span>
@@ -108,7 +108,7 @@ const Collections: React.FC = () => {
 
                 {isSelected && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="font-medium text-gray-900 mb-3">Payment Status</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">To'lov holati</h4>
                     <div className="space-y-2">
                       {getCollectionPayments(collection.id).map((payment) => {
                         const student = activeStudents.find(s => s.id === payment.studentId);
@@ -135,7 +135,7 @@ const Collections: React.FC = () => {
                               </button>
                               <div>
                                 <p className="font-medium text-gray-900">{student.name}</p>
-                                <p className="text-sm text-gray-600">Room {student.room}</p>
+                                <p className="text-sm text-gray-600">{student.room}-xona</p>
                               </div>
                             </div>
                             <div className="text-right">
@@ -144,7 +144,7 @@ const Collections: React.FC = () => {
                               </p>
                               {payment.isPaid && payment.paidAt && (
                                 <p className="text-xs text-emerald-600">
-                                  Paid {formatDate(payment.paidAt)}
+                                  To'landi {formatDate(payment.paidAt)}
                                 </p>
                               )}
                             </div>
@@ -160,8 +160,8 @@ const Collections: React.FC = () => {
         ) : (
           <Card className="text-center py-8">
             <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No collections yet</p>
-            <p className="text-sm text-gray-400 mt-1">Create your first collection to get started</p>
+            <p className="text-gray-500">Hali yig'imlar yo'q</p>
+            <p className="text-sm text-gray-400 mt-1">Boshlash uchun birinchi yig'imingizni yarating</p>
           </Card>
         )}
       </div>

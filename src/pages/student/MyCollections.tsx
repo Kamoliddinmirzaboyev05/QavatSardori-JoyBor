@@ -32,20 +32,20 @@ const MyCollections: React.FC = () => {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-gray-900">My Payments</h2>
-        <p className="text-sm text-gray-600">Track your payment status</p>
+        <h2 className="text-xl font-bold text-gray-900">Mening to'lovlarim</h2>
+        <p className="text-sm text-gray-600">To'lov holatini kuzatish</p>
       </div>
 
       {/* Statistics */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Overview</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">To'lovlar umumiy ko'rinishi</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <CheckCircle className="w-6 h-6 text-emerald-600" />
             </div>
             <p className="text-2xl font-bold text-emerald-600">{stats.paid}</p>
-            <p className="text-sm text-gray-600">Paid</p>
+            <p className="text-sm text-gray-600">To'langan</p>
           </div>
           
           <div className="text-center">
@@ -53,7 +53,7 @@ const MyCollections: React.FC = () => {
               <XCircle className="w-6 h-6 text-red-600" />
             </div>
             <p className="text-2xl font-bold text-red-600">{stats.unpaid}</p>
-            <p className="text-sm text-gray-600">Unpaid</p>
+            <p className="text-sm text-gray-600">To'lanmagan</p>
           </div>
 
           <div className="text-center">
@@ -63,7 +63,7 @@ const MyCollections: React.FC = () => {
             <p className="text-lg font-bold text-blue-600">
               {stats.paidAmount.toLocaleString()}
             </p>
-            <p className="text-sm text-gray-600">Paid Amount</p>
+            <p className="text-sm text-gray-600">To'langan miqdor</p>
           </div>
 
           <div className="text-center">
@@ -73,14 +73,14 @@ const MyCollections: React.FC = () => {
             <p className="text-lg font-bold text-gray-900">
               {(stats.totalAmount - stats.paidAmount).toLocaleString()}
             </p>
-            <p className="text-sm text-gray-600">Remaining</p>
+            <p className="text-sm text-gray-600">Qolgan</p>
           </div>
         </div>
       </Card>
 
       {/* Payment List */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900">Payment History</h3>
+        <h3 className="text-lg font-semibold text-gray-900">To'lovlar tarixi</h3>
         {paymentsWithCollection.length > 0 ? (
           paymentsWithCollection.map(({ payment, collection }) => (
             <Card key={payment.id}>
@@ -91,7 +91,7 @@ const MyCollections: React.FC = () => {
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
-                      Due: {collection && formatDate(collection.dueDate)}
+                      Muddat: {collection && formatDate(collection.dueDate)}
                     </div>
                   </div>
                 </div>
@@ -104,18 +104,18 @@ const MyCollections: React.FC = () => {
                     {payment.isPaid ? (
                       <div className="flex items-center text-emerald-600">
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        <span className="text-sm font-medium">Paid</span>
+                        <span className="text-sm font-medium">To'langan</span>
                       </div>
                     ) : (
                       <div className="flex items-center text-red-600">
                         <XCircle className="w-4 h-4 mr-1" />
-                        <span className="text-sm font-medium">Unpaid</span>
+                        <span className="text-sm font-medium">To'lanmagan</span>
                       </div>
                     )}
                   </div>
                   {payment.isPaid && payment.paidAt && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Paid on {formatDate(payment.paidAt)}
+                      {formatDate(payment.paidAt)} da to'langan
                     </p>
                   )}
                 </div>
@@ -125,9 +125,9 @@ const MyCollections: React.FC = () => {
         ) : (
           <Card className="text-center py-8">
             <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No payments yet</p>
+            <p className="text-gray-500">Hali to'lovlar yo'q</p>
             <p className="text-sm text-gray-400 mt-1">
-              Your payment history will appear here
+              To'lovlar tarixingiz bu yerda ko'rinadi
             </p>
           </Card>
         )}

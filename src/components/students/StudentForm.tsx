@@ -8,9 +8,9 @@ import { useApp } from '../../context/AppContext';
 import { Student } from '../../types';
 
 const studentSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  room: z.string().min(1, 'Room number is required'),
-  phone: z.string().min(10, 'Phone number must be at least 10 characters')
+  name: z.string().min(2, 'Ism kamida 2 ta belgidan iborat bo\'lishi kerak'),
+  room: z.string().min(1, 'Xona raqami talab qilinadi'),
+  phone: z.string().min(10, 'Telefon raqami kamida 10 ta belgidan iborat bo\'lishi kerak')
 });
 
 type StudentFormData = z.infer<typeof studentSchema>;
@@ -56,7 +56,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
       <div className="bg-white rounded-t-lg sm:rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            {student ? 'Edit Student' : 'Add Student'}
+            {student ? 'Talabani tahrirlash' : 'Talaba qo\'shish'}
           </h2>
           <button
             onClick={onClose}
@@ -69,13 +69,13 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
+              To'liq ismi
             </label>
             <input
               {...register('name')}
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter student name"
+              placeholder="Talaba ismini kiriting"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -84,13 +84,13 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Room Number
+              Xona raqami
             </label>
             <input
               {...register('room')}
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., 101"
+              placeholder="masalan, 101"
             />
             {errors.room && (
               <p className="mt-1 text-sm text-red-600">{errors.room.message}</p>
@@ -99,7 +99,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
+              Telefon raqami
             </label>
             <input
               {...register('phone')}
@@ -119,14 +119,14 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
               className="flex-1"
               onClick={onClose}
             >
-              Cancel
+              Bekor qilish
             </Button>
             <Button
               type="submit"
               className="flex-1"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Saving...' : (student ? 'Update' : 'Add')}
+              {isSubmitting ? 'Saqlanmoqda...' : (student ? 'Yangilash' : 'Qo\'shish')}
             </Button>
           </div>
         </form>

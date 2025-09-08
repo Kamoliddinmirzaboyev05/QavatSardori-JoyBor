@@ -17,22 +17,22 @@ const BottomNavigation: React.FC = () => {
   const { state } = useApp();
 
   const wardenNavItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/students', icon: Users, label: 'Students' },
-    { path: '/attendance', icon: ClipboardCheck, label: 'Attendance' },
-    { path: '/collections', icon: DollarSign, label: 'Collections' },
-    { path: '/requests', icon: MessageCircle, label: 'Requests' }
+    { path: '/', icon: Home, label: 'Boshqaruv' },
+    { path: '/students', icon: Users, label: 'Talabalar' },
+    { path: '/attendance', icon: ClipboardCheck, label: 'Davomat' },
+    { path: '/collections', icon: DollarSign, label: 'Yig\'imlar' },
+    { path: '/requests', icon: MessageCircle, label: 'So\'rovlar' }
   ];
 
   const studentNavItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/my-attendance', icon: ClipboardCheck, label: 'Attendance' },
-    { path: '/my-collections', icon: DollarSign, label: 'Payments' },
-    { path: '/my-requests', icon: FileText, label: 'Requests' },
-    { path: '/announcements', icon: Megaphone, label: 'News' }
+    { path: '/', icon: Home, label: 'Bosh sahifa' },
+    { path: '/my-attendance', icon: ClipboardCheck, label: 'Davomatim' },
+    { path: '/my-collections', icon: DollarSign, label: 'To\'lovlar' },
+    { path: '/my-requests', icon: FileText, label: 'So\'rovlarim' },
+    { path: '/announcements', icon: Megaphone, label: 'E\'lonlar' }
   ];
 
-  const navItems = state.role === 'warden' ? wardenNavItems : studentNavItems;
+  const navItems = state.role === 'qavat_sardori' ? wardenNavItems : studentNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">

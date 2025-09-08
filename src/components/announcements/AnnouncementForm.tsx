@@ -7,8 +7,8 @@ import Button from '../common/Button';
 import { useApp } from '../../context/AppContext';
 
 const announcementSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  content: z.string().min(10, 'Content must be at least 10 characters'),
+  title: z.string().min(3, 'Sarlavha kamida 3 ta belgidan iborat bo\'lishi kerak'),
+  content: z.string().min(10, 'Matn kamida 10 ta belgidan iborat bo\'lishi kerak'),
   isImportant: z.boolean().default(false)
 });
 
@@ -41,7 +41,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-lg sm:rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">New Announcement</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Yangi e'lon</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -53,13 +53,13 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title
+              Sarlavha
             </label>
             <input
               {...register('title')}
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., Important Notice"
+              placeholder="masalan, Muhim xabar"
             />
             {errors.title && (
               <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -68,13 +68,13 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Content
+              Matn
             </label>
             <textarea
               {...register('content')}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Write your announcement here..."
+              placeholder="E'loningizni bu yerga yozing..."
             />
             {errors.content && (
               <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
@@ -89,7 +89,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
               className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
             />
             <label htmlFor="isImportant" className="ml-2 block text-sm text-gray-700">
-              Mark as important (high priority)
+              Muhim deb belgilash (yuqori ustuvorlik)
             </label>
           </div>
 
@@ -100,14 +100,14 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
               className="flex-1"
               onClick={onClose}
             >
-              Cancel
+              Bekor qilish
             </Button>
             <Button
               type="submit"
               className="flex-1"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Publishing...' : 'Publish'}
+              {isSubmitting ? 'E\'lon qilinmoqda...' : 'E\'lon qilish'}
             </Button>
           </div>
         </form>
