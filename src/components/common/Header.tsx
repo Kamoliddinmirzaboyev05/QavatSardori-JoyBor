@@ -29,19 +29,26 @@ const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40">
       <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-2">
-          {state.role === 'qavat_sardori' ? (
-            <Shield className="w-6 h-6 text-blue-600" />
-          ) : (
-            <User className="w-6 h-6 text-emerald-600" />
-          )}
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              {state.role === 'qavat_sardori' ? 'Qavat Sardori' : 'Talaba Paneli'}
-            </h1>
-            {state.role === 'talaba' && currentStudent && (
-              <p className="text-sm text-gray-600">{currentStudent.name} - {currentStudent.room}-xona</p>
+        <div className="flex items-center space-x-3">
+          <img 
+            src="/logoicon.svg" 
+            alt="Qavat Sardori Logo" 
+            className="w-8 h-8"
+          />
+          <div className="flex items-center space-x-2">
+            {state.role === 'qavat_sardori' ? (
+              <Shield className="w-5 h-5 text-blue-600" />
+            ) : (
+              <User className="w-5 h-5 text-emerald-600" />
             )}
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">
+                {state.role === 'qavat_sardori' ? 'Qavat Sardori' : 'Talaba Paneli'}
+              </h1>
+              {state.role === 'talaba' && currentStudent && (
+                <p className="text-sm text-gray-600">{currentStudent.name} - {currentStudent.room}-xona</p>
+              )}
+            </div>
           </div>
         </div>
         

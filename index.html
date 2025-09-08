@@ -1,13 +1,101 @@
 <!doctype html>
-<html lang="en">
+<html lang="uz">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Basic Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Yotoqxona qavati boshqaruvi uchun mobil ilova. Talabalar davomati, to'lovlar va so'rovlarni boshqaring." />
+    <meta name="keywords" content="yotoqxona, qavat sardori, davomat, to'lov, talaba, boshqaruv" />
+    <meta name="author" content="Qavat Sardori Team" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="background-color" content="#ffffff" />
+    <meta name="display" content="standalone" />
+    <meta name="orientation" content="portrait" />
+    
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Qavat Sardori" />
+    <link rel="apple-touch-icon" href="/logoicon.svg" />
+    
+    <!-- Microsoft PWA Meta Tags -->
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-TileImage" content="/logoicon.svg" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Icons and Manifest -->
     <link rel="icon" type="image/svg+xml" href="/logoicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Floor Warden Management System - Mobile-First React + TypeScript</title>
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/logoicon.svg" as="image" type="image/svg+xml" />
+    
+    <title>Qavat Sardori - Yotoqxona Boshqaruv Tizimi</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Installation Script -->
+    <script>
+      // Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install button or banner
+        const installBanner = document.createElement('div');
+        installBanner.innerHTML = `
+          <div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: #2563eb; color: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 600; margin-bottom: 4px;">Ilovani o'rnatish</div>
+              <div style="font-size: 14px; opacity: 0.9;">Tezroq kirish uchun bosh ekranga qo'shing</div>
+            </div>
+            <div>
+              <button id="installBtn" style="background: white; color: #2563eb; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin-right: 8px; cursor: pointer;">O'rnatish</button>
+              <button id="dismissBtn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(installBanner);
+
+        document.getElementById('installBtn').addEventListener('click', () => {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+            }
+            deferredPrompt = null;
+            document.body.removeChild(installBanner);
+          });
+        });
+
+        document.getElementById('dismissBtn').addEventListener('click', () => {
+          document.body.removeChild(installBanner);
+        });
+      });
+
+      // Track PWA installation
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('PWA was installed');
+      });
+    </script>
   </body>
 </html>
