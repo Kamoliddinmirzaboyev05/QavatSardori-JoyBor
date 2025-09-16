@@ -26,8 +26,11 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
 
   const onSubmit = async (data: RequestFormData) => {
     try {
-      if (!state.currentStudentId) {
-        console.error('No current student ID');
+      // For admin interface, we need to select a student
+      // For now, we'll use the first available student
+      const activeStudents = state.students.filter(s => !s.isDeleted);
+      if (activeStudents.length === 0) {
+        console.error('No active students available');
         return;
       }
 
@@ -35,7 +38,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
         type: 'ADD_REQUEST',
         payload: {
           ...data,
-          studentId: state.currentStudentId,
+          studentId: activeStudents[0].id, // This should be selected by admin
           status: 'ochiq'
         }
       });

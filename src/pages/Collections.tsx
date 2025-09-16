@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, DollarSign, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -8,6 +9,7 @@ import { formatDate } from '../utils/storage';
 
 const Collections: React.FC = () => {
   const { state, dispatch } = useApp();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
@@ -65,8 +67,8 @@ const Collections: React.FC = () => {
             return (
               <Card key={collection.id}>
                 <div 
-                  className="cursor-pointer"
-                  onClick={() => setSelectedCollection(isSelected ? null : collection.id)}
+                  className="cursor-pointer hover:bg-gray-50 transition-colors rounded-lg p-1 -m-1"
+                  onClick={() => navigate(`/collections/${collection.id}`)}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -105,55 +107,6 @@ const Collections: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
-                {isSelected && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="font-medium text-gray-900 mb-3">To'lov holati</h4>
-                    <div className="space-y-2">
-                      {getCollectionPayments(collection.id).map((payment) => {
-                        const student = activeStudents.find(s => s.id === payment.studentId);
-                        if (!student) return null;
-                        
-                        return (
-                          <div 
-                            key={payment.id}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
-                          >
-                            <div className="flex items-center">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePayment(payment.id);
-                                }}
-                                className="mr-3"
-                              >
-                                {payment.isPaid ? (
-                                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                                ) : (
-                                  <XCircle className="w-5 h-5 text-gray-400" />
-                                )}
-                              </button>
-                              <div>
-                                <p className="font-medium text-gray-900">{student.name}</p>
-                                <p className="text-sm text-gray-600">{student.room}-xona</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium text-gray-900">
-                                {payment.amount.toLocaleString()} so'm
-                              </p>
-                              {payment.isPaid && payment.paidAt && (
-                                <p className="text-xs text-emerald-600">
-                                  To'landi {formatDate(payment.paidAt)}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </Card>
             );
           })

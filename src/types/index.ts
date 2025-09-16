@@ -59,11 +59,8 @@ export interface Request {
   updatedAt?: string;
 }
 
-export type Role = 'qavat_sardori' | 'talaba';
-
 export interface AppState {
-  role: Role;
-  currentStudentId?: string;
+  isAuthenticated: boolean;
   students: Student[];
   attendance: AttendanceRecord[];
   collections: Collection[];
