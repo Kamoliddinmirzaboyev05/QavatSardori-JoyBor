@@ -29,8 +29,8 @@ const Login: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: 'sardor',
-      password: 'qavatsardori'
+      username: '',
+      password: ''
     }
   });
 
@@ -150,16 +150,6 @@ const Login: React.FC = () => {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Demo ma'lumotlar:</p>
-              <div className="text-xs text-gray-500 space-y-1">
-                <p><strong>Username:</strong> sardor</p>
-                <p><strong>Password:</strong> qavatsardori</p>
-              </div>
-            </div>
-          </div>
         </Card>
       </div>
     </div>

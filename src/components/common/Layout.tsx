@@ -12,7 +12,6 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
       <BottomNavigation />
-      <PWAInstallButton />
     </div>
   );
 };

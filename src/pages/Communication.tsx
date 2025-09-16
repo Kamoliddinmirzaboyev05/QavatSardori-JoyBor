@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, MessageCircle, Clock, CheckCircle, AlertCircle, Megaphone, AlertTriangle } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PWAInstallButton from '../components/common/PWAInstallButton';
 import RequestForm from '../components/requests/RequestForm';
 import AnnouncementForm from '../components/announcements/AnnouncementForm';
 import { useApp } from '../context/AppContext';
@@ -277,6 +278,17 @@ const Communication: React.FC = () => {
       {showAnnouncementForm && (
         <AnnouncementForm onClose={() => setShowAnnouncementForm(false)} />
       )}
+
+      {/* Hidden advanced section for manual PWA install */}
+      <div className="mt-8 opacity-60 hover:opacity-100 transition-opacity">
+        <details>
+          <summary className="cursor-pointer text-xs text-gray-500">Kengaytirilgan sozlamalar</summary>
+          <div className="mt-3">
+            <p className="text-xs text-gray-500 mb-2">Ilovani qurilmaga o'rnatish:</p>
+            <PWAInstallButton />
+          </div>
+        </details>
+      </div>
     </div>
   );
 };

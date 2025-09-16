@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 import Button from './Button';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -9,7 +9,6 @@ interface BeforeInstallPromptEvent extends Event {
 
 const PWAInstallButton: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
@@ -23,18 +22,14 @@ const PWAInstallButton: React.FC = () => {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the default mini-infobar and store the event, but DO NOT auto-show any UI
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Show install banner after a delay
-      setTimeout(() => {
-        setShowInstallBanner(true);
-      }, 3000);
+      // Do not set showInstallBanner automatically
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
-      setShowInstallBanner(false);
       setDeferredPrompt(null);
     };
 
@@ -58,49 +53,24 @@ const PWAInstallButton: React.FC = () => {
     }
     
     setDeferredPrompt(null);
-    setShowInstallBanner(false);
   };
 
-  const handleDismiss = () => {
-    setShowInstallBanner(false);
-    // Don't show again for this session
-    sessionStorage.setItem('pwa-install-dismissed', 'true');
-  };
-
-  // Don't show if already installed or dismissed
-  if (isInstalled || !showInstallBanner || sessionStorage.getItem('pwa-install-dismissed')) {
+  // Manual button-only component; it renders a button to trigger install when eligible.
+  if (isInstalled || sessionStorage.getItem('pwa-install-dismissed')) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50 animate-slide-up">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <img src="/logoicon.svg" alt="Logo" className="w-8 h-8" />
-          <div>
-            <h3 className="font-semibold text-sm">Ilovani o'rnatish</h3>
-            <p className="text-xs opacity-90">Tezroq kirish uchun bosh ekranga qo'shing</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleInstallClick}
-            className="text-blue-600 bg-white hover:bg-gray-100"
-          >
-            <Download className="w-4 h-4 mr-1" />
-            O'rnatish
-          </Button>
-          <button
-            onClick={handleDismiss}
-            className="text-white hover:text-gray-200 p-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+    <Button
+      size="sm"
+      variant="secondary"
+      onClick={handleInstallClick}
+      disabled={!deferredPrompt}
+      className="inline-flex items-center"
+    >
+      <Download className="w-4 h-4 mr-1" />
+      Ilovani o'rnatish
+    </Button>
   );
 };
 
