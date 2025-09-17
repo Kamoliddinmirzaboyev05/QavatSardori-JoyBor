@@ -82,7 +82,7 @@ const Login: React.FC = () => {
         </div>
 
         <Card className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Foydalanuvchi nomi
@@ -90,6 +90,7 @@ const Login: React.FC = () => {
               <input
                 {...register('username')}
                 type="text"
+                autoComplete="off"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Foydalanuvchi nomini kiriting"
               />
@@ -106,6 +107,7 @@ const Login: React.FC = () => {
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Parolni kiriting"
                 />

@@ -39,9 +39,8 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- PWA Installation Script -->
+    <!-- Service Worker Registration Only -->
     <script>
-      // Service Worker Registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
@@ -53,49 +52,6 @@
             });
         });
       }
-
-      // PWA Install Prompt
-      let deferredPrompt;
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show install button or banner
-        const installBanner = document.createElement('div');
-        installBanner.innerHTML = `
-          <div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: #2563eb; color: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-weight: 600; margin-bottom: 4px;">Ilovani o'rnatish</div>
-              <div style="font-size: 14px; opacity: 0.9;">Tezroq kirish uchun bosh ekranga qo'shing</div>
-            </div>
-            <div>
-              <button id="installBtn" style="background: white; color: #2563eb; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin-right: 8px; cursor: pointer;">O'rnatish</button>
-              <button id="dismissBtn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(installBanner);
-
-        document.getElementById('installBtn').addEventListener('click', () => {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-              console.log('User accepted the install prompt');
-            }
-            deferredPrompt = null;
-            document.body.removeChild(installBanner);
-          });
-        });
-
-        document.getElementById('dismissBtn').addEventListener('click', () => {
-          document.body.removeChild(installBanner);
-        });
-      });
-
-      // Track PWA installation
-      window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA was installed');
-      });
     </script>
   </body>
 </html>

@@ -5,7 +5,8 @@ import Layout from './components/common/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DutySchedule from './pages/DutySchedule';
-import Attendance from './pages/Attendance';
+import AttendanceList from './pages/AttendanceList';
+import AttendanceDetail from './pages/AttendanceDetail';
 import Collections from './pages/Collections';
 import CollectionDetails from './pages/CollectionDetails';
 import Communication from './pages/Communication';
@@ -27,7 +28,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="/duty-schedule" element={<DutySchedule />} />
-        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/attendance" element={<AttendanceList />} />
+        <Route path="/attendance/:id" element={<AttendanceDetail />} />
         <Route path="/collections" element={<Collections />} />
         <Route path="/collections/:id" element={<CollectionDetails />} />
         <Route path="/communication" element={<Communication />} />
