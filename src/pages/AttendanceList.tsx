@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Users, Calendar, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { formatDate } from '../utils/storage';
@@ -93,20 +93,23 @@ const AttendanceList: React.FC = () => {
     fetchAttendanceSessions();
   }, []);
 
-  // Get status statistics for session
+  // Get status statistics for session (updated for 2 statuses only)
   const getSessionStats = (session: AttendanceSession) => {
-    let present = 0, absent = 0, late = 0;
+    let present = 0, absent = 0;
 
     session.rooms.forEach(room => {
       room.students.forEach(student => {
-        if (student.status === 'Hozir') present++;
-        else if (student.status === 'Yo\'q') absent++;
-        else if (student.status === 'Kech') late++;
+        if (student.status === 'Hozir' || student.status === 'in') {
+          present++;
+        } else if (student.status === 'Yo\'q' || student.status === 'out') {
+          absent++;
+        }
+        // Remove 'Kech' status completely
       });
     });
 
     const total = session.rooms.reduce((sum, room) => sum + room.students.length, 0);
-    return { present, absent, late, total };
+    return { present, absent, total };
   };
 
   // Format date for display
@@ -210,22 +213,17 @@ const AttendanceList: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Statistics - Mobile optimized */}
-                    <div className="grid grid-cols-3 gap-2">
+                    {/* Statistics - Updated for 2 statuses only */}
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="bg-emerald-50 rounded-lg p-3 text-center">
                         <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
                         <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-                        <p className="text-xs text-emerald-700">Hozir</p>
-                      </div>
-                      <div className="bg-orange-50 rounded-lg p-3 text-center">
-                        <Clock className="w-5 h-5 text-orange-600 mx-auto mb-1" />
-                        <p className="text-lg font-bold text-orange-600">{stats.late}</p>
-                        <p className="text-xs text-orange-700">Kech</p>
+                        <p className="text-xs text-emerald-700">Bor (In)</p>
                       </div>
                       <div className="bg-red-50 rounded-lg p-3 text-center">
                         <XCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
                         <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-                        <p className="text-xs text-red-700">Yo'q</p>
+                        <p className="text-xs text-red-700">Yo'q (Out)</p>
                       </div>
                     </div>
 

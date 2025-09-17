@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Users, Save, Plus, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Save, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { formatDate } from '../utils/storage';
 import { clsx } from 'clsx';
 import { useParams, useNavigate } from 'react-router-dom';
+import { apiService } from '../services/api';
 
 interface Student {
   id: number;
@@ -45,7 +46,7 @@ const AttendanceDetail: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
+  const [expandedRooms, setExpandedRooms] = useState<Set<number>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Update student status in session (only local state)
@@ -77,70 +78,122 @@ const AttendanceDetail: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  // Simplified save function - just show success since API endpoints are not working
-  const updateAttendanceRecords = async (records: any[], token: string, sessionId: number) => {
-    console.log(`Saving ${records.length} attendance records locally...`);
-    
-    // Since all API endpoints are returning 404, we'll just simulate a successful save
-    // The changes are already saved in the local state, so we just need to show success
-    console.log('Changes saved locally - API endpoints are not available');
-    
-    // Simulate a small delay to show the saving process
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    console.log('Local save completed successfully');
-  };
-
-  // Save attendance changes
+  // Save attendance changes with correct status format
   const saveAttendance = async () => {
     if (!attendanceSession) return;
 
     setIsSaving(true);
     setError(null);
 
-    const token = sessionStorage.getItem('access_token');
-    if (!token) {
-      setError('Token topilmadi');
-      setIsSaving(false);
-      return;
-    }
+    try {
+      const token = sessionStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('Token topilmadi');
+      }
 
-    // Prepare records array for API
-    const records: any[] = [];
+      // Prepare records array for API with correct status format
+      const records: any[] = [];
 
-    attendanceSession.rooms.forEach(room => {
-      room.students.forEach(student => {
-        records.push({
-          id: student.id,
-          student_id: student.student.id,
-          status: student.status
+      attendanceSession.rooms.forEach(room => {
+        room.students.forEach(student => {
+          // Convert status to API format - ONLY lowercase "in" and "out"
+          let apiStatus = '';
+          if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'In' || student.status === 'in') {
+            apiStatus = 'in'; // Always lowercase
+          } else if (student.status === 'Yo\'q' || student.status === 'Out' || student.status === 'out') {
+            apiStatus = 'out'; // Always lowercase
+          }
+          // Skip any other statuses (like "Kech")
+
+          // Only add record if we have a valid status
+          if (apiStatus) {
+            records.push({
+              id: student.id, // This is the attendance record ID
+              student_id: student.student.id, // This is the actual student ID
+              status: apiStatus // Always lowercase: "in" or "out"
+            });
+          }
         });
       });
-    });
 
-    console.log('Sending attendance data:', { records });
-    console.log('Records structure:', records.map(r => ({ id: r.id, student_id: r.student_id, status: r.status })));
-
-    try {
-      // Use the new update function with multiple fallback strategies
-      console.log('Updating attendance records...');
-      await updateAttendanceRecords(records, token, attendanceSession.id);
+      console.log('=== ATTENDANCE SAVE DEBUG ===');
+      console.log('Session ID:', attendanceSession.id);
+      console.log('Total records to send:', records.length);
+      console.log('Records array:', records);
+      console.log('API endpoint:', `https://joyboryangi.pythonanywhere.com/attendance-records/${attendanceSession.id}/bulk-update/`);
       
-      // Show success message
-      setError(null);
-      setSuccessMessage('Davomat o\'zgarishlari saqlandi! (Mahalliy saqlash)');
-      
-      // Clear unsaved changes
-      setHasUnsavedChanges(false);
+      // Log each record individually
+      records.forEach((record, index) => {
+        console.log(`Record ${index + 1}:`, {
+          id: record.id,
+          student_id: record.student_id,
+          status: record.status,
+          id_type: typeof record.id,
+          student_id_type: typeof record.student_id,
+          status_type: typeof record.status
+        });
+      });
 
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+      const requestBody = { records };
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
+      // Use the correct API format as shown in Swagger documentation
+      const response = await fetch(`https://joyboryangi.pythonanywhere.com/attendance-records/${attendanceSession.id}/bulk-update/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Attendance updated successfully:', responseData);
+        
+        // Show success message
+        setError(null);
+        setSuccessMessage('Davomat o\'zgarishlari muvaffaqiyatli saqlandi!');
+        
+        // Clear unsaved changes
+        setHasUnsavedChanges(false);
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        const errorText = await response.text();
+        console.log('❌ API request failed:', response.status, errorText);
+        
+        let errorMessage = `API xatoligi: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          console.log('Error data:', errorData);
+          
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.non_field_errors) {
+            errorMessage = errorData.non_field_errors.join(', ');
+          } else if (errorData.records) {
+            errorMessage = `Records validation error: ${JSON.stringify(errorData.records)}`;
+          } else {
+            errorMessage = JSON.stringify(errorData);
+          }
+        } catch (e) {
+          console.log('Could not parse error response:', e);
+          errorMessage = `Raw error: ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
 
     } catch (err) {
       console.error('Error updating attendance:', err);
-      setError('Davomat o\'zgarishlari saqlanmadi. Iltimos, qaytadan urinib ko\'ring.');
+      setError(err instanceof Error ? err.message : 'Davomat o\'zgarishlari saqlanmadi. Iltimos, qaytadan urinib ko\'ring.');
     } finally {
       setIsSaving(false);
     }
@@ -152,32 +205,7 @@ const AttendanceDetail: React.FC = () => {
     setError(null);
 
     try {
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('Token topilmadi');
-      }
-
-      const response = await fetch('https://joyboryangi.pythonanywhere.com/attendance-sessions/create/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: {}
-        })
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          sessionStorage.clear();
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error(`Davomat sessiyasini yaratishda xatolik: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await apiService.createAttendanceSession();
       console.log('Attendance session created:', result);
 
       // Navigate to the new session
@@ -198,31 +226,13 @@ const AttendanceDetail: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        return;
-      }
-
-      const response = await fetch(`https://joyboryangi.pythonanywhere.com/attendance-sessions/${id}/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          sessionStorage.clear();
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error(`Davomat sessiyasini olishda xatolik: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await apiService.getAttendanceSession(id);
       console.log('Fetched attendance session:', result);
       setAttendanceSession(result);
+
+      // Auto-expand all rooms
+      const allRoomIds = new Set(result.rooms.map(room => room.room_id));
+      setExpandedRooms(allRoomIds);
 
     } catch (err) {
       console.error('Error fetching attendance session:', err);
@@ -242,20 +252,36 @@ const AttendanceDetail: React.FC = () => {
     }
   }, [id]);
 
-  // Get status statistics for session
+  // Get status statistics for session (updated for 2 statuses only)
   const getSessionStats = (session: AttendanceSession) => {
-    let present = 0, absent = 0, late = 0;
+    let present = 0, absent = 0;
 
     session.rooms.forEach(room => {
       room.students.forEach(student => {
-        if (student.status === 'Hozir') present++;
-        else if (student.status === 'Yo\'q') absent++;
-        else if (student.status === 'Kech') late++;
+        if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In') {
+          present++;
+        } else if (student.status === 'Yo\'q' || student.status === 'out' || student.status === 'Out') {
+          absent++;
+        }
+        // Skip "Kech" and other statuses
       });
     });
 
     const total = session.rooms.reduce((sum, room) => sum + room.students.length, 0);
-    return { present, absent, late, total };
+    return { present, absent, total };
+  };
+
+  // Toggle room expansion
+  const toggleRoom = (roomId: number) => {
+    setExpandedRooms(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(roomId)) {
+        newSet.delete(roomId);
+      } else {
+        newSet.add(roomId);
+      }
+      return newSet;
+    });
   };
 
   if (isLoading) {
@@ -340,115 +366,102 @@ const AttendanceDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Statistics */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-emerald-50 rounded-lg p-3 text-center">
-          <CheckCircle className="w-6 h-6 text-emerald-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-          <p className="text-xs text-emerald-700">Hozir</p>
+      {/* Statistics - Updated for 2 statuses only */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-emerald-50 rounded-lg p-4 text-center">
+          <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-emerald-600">{stats.present}</p>
+          <p className="text-sm text-emerald-700">Bor (in)</p>
         </div>
-        <div className="bg-orange-50 rounded-lg p-3 text-center">
-          <Clock className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-orange-600">{stats.late}</p>
-          <p className="text-xs text-orange-700">Kech</p>
-        </div>
-        <div className="bg-red-50 rounded-lg p-3 text-center">
-          <XCircle className="w-6 h-6 text-red-600 mx-auto mb-1" />
-          <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-          <p className="text-xs text-red-700">Yo'q</p>
+        <div className="bg-red-50 rounded-lg p-4 text-center">
+          <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
+          <p className="text-sm text-red-700">Yo'q (out)</p>
         </div>
       </div>
 
-      {/* Rooms */}
+      {/* Rooms - All expanded by default */}
       <div className="space-y-4">
-        {attendanceSession.rooms.map((room) => (
-          <Card key={room.room_id} className="overflow-hidden">
-            <div
-              className="cursor-pointer p-4"
-              onClick={() => setSelectedRoom(selectedRoom === room.room_id ? null : room.room_id)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">{room.room_name}</h3>
-                  <p className="text-sm text-gray-600">{room.students.length} ta talaba</p>
+        {attendanceSession.rooms.map((room) => {
+          const isExpanded = expandedRooms.has(room.room_id);
+          
+          return (
+            <Card key={room.room_id} className="overflow-hidden">
+              <div
+                className="cursor-pointer p-4"
+                onClick={() => toggleRoom(room.room_id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-lg">{room.room_name}</h3>
+                    <p className="text-sm text-gray-600">{room.students.length} ta talaba</p>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
                 </div>
-                {selectedRoom === room.room_id ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
-                )}
               </div>
-            </div>
 
-            {/* Students */}
-            {selectedRoom === room.room_id && (
-              <div className="px-4 pb-4">
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="space-y-3">
-                    {room.students.map((student) => (
-                      <div key={student.id} className="bg-white rounded-lg p-3 shadow-sm">
-                        <div className="flex flex-col space-y-3">
-                          <div className="text-center">
-                            <p className="font-medium text-gray-900 text-base">
-                              {student.student.name} {student.student.last_name}
-                            </p>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStudentStatus(student.id, 'Hozir');
-                              }}
-                              className={clsx(
-                                "py-3 px-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95",
-                                student.status === 'Hozir'
-                                  ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
-                              )}
-                            >
-                              <CheckCircle className="w-4 h-4 mx-auto mb-1" />
-                              Hozir
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStudentStatus(student.id, 'Kech');
-                              }}
-                              className={clsx(
-                                "py-3 px-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95",
-                                student.status === 'Kech'
-                                  ? "bg-orange-500 text-white shadow-lg ring-2 ring-orange-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-700"
-                              )}
-                            >
-                              <Clock className="w-4 h-4 mx-auto mb-1" />
-                              Kech
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                updateStudentStatus(student.id, 'Yo\'q');
-                              }}
-                              className={clsx(
-                                "py-3 px-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95",
-                                student.status === 'Yo\'q'
-                                  ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
-                              )}
-                            >
-                              <XCircle className="w-4 h-4 mx-auto mb-1" />
-                              Yo'q
-                            </button>
+              {/* Students - Always visible when room is expanded */}
+              {isExpanded && (
+                <div className="px-4 pb-4">
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="space-y-3">
+                      {room.students.map((student) => (
+                        <div key={student.id} className="bg-white rounded-lg p-4 shadow-sm">
+                          <div className="flex flex-col space-y-4">
+                            <div className="text-center">
+                              <p className="font-medium text-gray-900 text-lg">
+                                {student.student.name} {student.student.last_name}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Record ID: {student.id} | Student ID: {student.student.id} | Status: {student.status}
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateStudentStatus(student.id, 'Hozir');
+                                }}
+                                className={clsx(
+                                  "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                  student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In'
+                                    ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                )}
+                              >
+                                <CheckCircle className="w-6 h-6 mx-auto mb-2" />
+                                Bor (in)
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateStudentStatus(student.id, 'Yo\'q');
+                                }}
+                                className={clsx(
+                                  "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                  student.status === 'Yo\'q' || student.status === 'out' || student.status === 'Out'
+                                    ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
+                                )}
+                              >
+                                <XCircle className="w-6 h-6 mx-auto mb-2" />
+                                Yo'q (out)
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </Card>
-        ))}
+              )}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Save Button */}
@@ -459,9 +472,6 @@ const AttendanceDetail: React.FC = () => {
               <div className="flex items-center justify-center text-orange-600 bg-orange-50 rounded-lg p-3">
                 <div className="w-2 h-2 bg-orange-600 rounded-full mr-2 animate-pulse"></div>
                 <span className="text-sm font-medium">Saqlanmagan o'zgarishlar mavjud</span>
-              </div>
-              <div className="text-center text-xs text-gray-500 mb-2">
-                O'zgarishlar mahalliy saqlanadi
               </div>
               <Button
                 onClick={saveAttendance}
