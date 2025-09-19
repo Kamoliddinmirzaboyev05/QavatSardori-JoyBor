@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request } from '../types';
+import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request, User } from '../types';
 import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
 
 type AppAction =
-  | { type: 'LOGIN_SUCCESS'; payload: { tokens: any } }
+  | { type: 'LOGIN_SUCCESS'; payload: { tokens: any; user?: User } }
   | { type: 'LOGOUT' }
   | { type: 'LOAD_DATA'; payload: Partial<AppState> }
+  | { type: 'UPDATE_USER'; payload: User }
   | { type: 'ADD_STUDENT'; payload: Omit<Student, 'id' | 'createdAt'> }
   | { type: 'UPDATE_STUDENT'; payload: Student }
   | { type: 'DELETE_STUDENT'; payload: string }
@@ -33,12 +34,17 @@ const initialState: AppState = {
 const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  updateUser: (user: User) => void;
 } | undefined>(undefined);
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
-      return { ...state, isAuthenticated: true };
+      return { 
+        ...state, 
+        isAuthenticated: true,
+        user: action.payload.user || state.user
+      };
 
     case 'LOGOUT':
       // Clear session storage
@@ -49,6 +55,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'LOAD_DATA':
       return { ...state, ...action.payload };
+
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: action.payload
+      };
 
     case 'ADD_STUDENT': {
       const newStudent: Student = {
@@ -188,6 +200,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  const updateUser = (user: User) => {
+    dispatch({ type: 'UPDATE_USER', payload: user });
+  };
+
   // Load initial data from storage
   useEffect(() => {
     const storedData = loadFromStorage();
@@ -208,7 +224,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [state]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state, dispatch, updateUser }}>
       {children}
     </AppContext.Provider>
   );

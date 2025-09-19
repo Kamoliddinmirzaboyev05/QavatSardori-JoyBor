@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/common/Layout';
+import PageTransition from './components/common/PageTransition';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DutySchedule from './pages/DutySchedule';
@@ -10,6 +12,7 @@ import AttendanceDetail from './pages/AttendanceDetail';
 import Collections from './pages/Collections';
 import CollectionDetails from './pages/CollectionDetails';
 import Communication from './pages/Communication';
+import Profile from './pages/Profile';
 
 const AppRoutes: React.FC = () => {
   const { state } = useApp();
@@ -24,18 +27,53 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="/duty-schedule" element={<DutySchedule />} />
-        <Route path="/attendance" element={<AttendanceList />} />
-        <Route path="/attendance/:id" element={<AttendanceDetail />} />
-        <Route path="/collections" element={<Collections />} />
-        <Route path="/collections/:id" element={<CollectionDetails />} />
-        <Route path="/communication" element={<Communication />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={
+            <PageTransition>
+              <Dashboard />
+            </PageTransition>
+          } />
+          <Route path="/duty-schedule" element={
+            <PageTransition>
+              <DutySchedule />
+            </PageTransition>
+          } />
+          <Route path="/attendance" element={
+            <PageTransition>
+              <AttendanceList />
+            </PageTransition>
+          } />
+          <Route path="/attendance/:id" element={
+            <PageTransition>
+              <AttendanceDetail />
+            </PageTransition>
+          } />
+          <Route path="/collections" element={
+            <PageTransition>
+              <Collections />
+            </PageTransition>
+          } />
+          <Route path="/collections/:id" element={
+            <PageTransition>
+              <CollectionDetails />
+            </PageTransition>
+          } />
+          <Route path="/communication" element={
+            <PageTransition>
+              <Communication />
+            </PageTransition>
+          } />
+          <Route path="/profile" element={
+            <PageTransition>
+              <Profile />
+            </PageTransition>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </AnimatePresence>
   );
 };
 

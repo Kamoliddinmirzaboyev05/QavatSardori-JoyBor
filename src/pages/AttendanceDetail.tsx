@@ -6,6 +6,7 @@ import { formatDate } from '../utils/storage';
 import { clsx } from 'clsx';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { toast } from 'sonner';
 
 interface Student {
   id: number;
@@ -78,7 +79,7 @@ const AttendanceDetail: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  // Save attendance changes with correct status format
+  // Save attendance changes using the correct PATCH API
   const saveAttendance = async () => {
     if (!attendanceSession) return;
 
@@ -86,114 +87,56 @@ const AttendanceDetail: React.FC = () => {
     setError(null);
 
     try {
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('Token topilmadi');
-      }
-
-      // Prepare records array for API with correct status format
+      // Prepare records array for API according to the Swagger documentation
       const records: any[] = [];
 
       attendanceSession.rooms.forEach(room => {
         room.students.forEach(student => {
-          // Convert status to API format - ONLY lowercase "in" and "out"
           let apiStatus = '';
-          if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'In' || student.status === 'in') {
-            apiStatus = 'in'; // Always lowercase
-          } else if (student.status === 'Yo\'q' || student.status === 'Out' || student.status === 'out') {
-            apiStatus = 'out'; // Always lowercase
+          if (
+            student.status === 'Hozir' ||
+            student.status === 'Bor' ||
+            student.status === 'In' ||
+            student.status === 'in'
+          ) {
+            apiStatus = 'in';
+          } else if (
+            student.status === "Yo'q" ||
+            student.status === 'Out' ||
+            student.status === 'out'
+          ) {
+            apiStatus = 'out';
           }
-          // Skip any other statuses (like "Kech")
 
-          // Only add record if we have a valid status
           if (apiStatus) {
             records.push({
-              id: student.id, // This is the attendance record ID
-              student_id: student.student.id, // This is the actual student ID
-              status: apiStatus // Always lowercase: "in" or "out"
+              id: student.id,
+              student_id: student.student.id,
+              status: apiStatus
             });
           }
         });
       });
 
-      console.log('=== ATTENDANCE SAVE DEBUG ===');
-      console.log('Session ID:', attendanceSession.id);
-      console.log('Total records to send:', records.length);
-      console.log('Records array:', records);
-      console.log('API endpoint:', `https://joyboryangi.pythonanywhere.com/attendance-records/${attendanceSession.id}/bulk-update/`);
+      // console.debug('Sending attendance data to API:', { records });
+      // console.debug('API endpoint:', `/attendance-records/${attendanceSession.id}/bulk-update/`);
+
+      // Use the API service with the correct PATCH endpoint
+      await apiService.updateAttendanceRecords(attendanceSession.id.toString(), records);
       
-      // Log each record individually
-      records.forEach((record, index) => {
-        console.log(`Record ${index + 1}:`, {
-          id: record.id,
-          student_id: record.student_id,
-          status: record.status,
-          id_type: typeof record.id,
-          student_id_type: typeof record.student_id,
-          status_type: typeof record.status
-        });
-      });
-
-      const requestBody = { records };
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
-
-      // Use the correct API format as shown in Swagger documentation
-      const response = await fetch(`https://joyboryangi.pythonanywhere.com/attendance-records/${attendanceSession.id}/bulk-update/`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ Attendance updated successfully:', responseData);
-        
-        // Show success message
-        setError(null);
-        setSuccessMessage('Davomat o\'zgarishlari muvaffaqiyatli saqlandi!');
-        
-        // Clear unsaved changes
-        setHasUnsavedChanges(false);
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
-      } else {
-        const errorText = await response.text();
-        console.log('❌ API request failed:', response.status, errorText);
-        
-        let errorMessage = `API xatoligi: ${response.status}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          console.log('Error data:', errorData);
-          
-          if (errorData.detail) {
-            errorMessage = errorData.detail;
-          } else if (errorData.non_field_errors) {
-            errorMessage = errorData.non_field_errors.join(', ');
-          } else if (errorData.records) {
-            errorMessage = `Records validation error: ${JSON.stringify(errorData.records)}`;
-          } else {
-            errorMessage = JSON.stringify(errorData);
-          }
-        } catch (e) {
-          console.log('Could not parse error response:', e);
-          errorMessage = `Raw error: ${errorText}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
+      // Show success toast
+      setError(null);
+      toast.success("Davomat muvaffaqiyatli saqlandi");
+      // Navigate back to attendance list after successful save
+      navigate('/attendance');
+      
+      // Clear unsaved changes
+      setHasUnsavedChanges(false);
 
     } catch (err) {
-      console.error('Error updating attendance:', err);
-      setError(err instanceof Error ? err.message : 'Davomat o\'zgarishlari saqlanmadi. Iltimos, qaytadan urinib ko\'ring.');
+      const message = err instanceof Error ? err.message : 'Davomat o\'zgarishlari saqlanmadi. Iltimos, qaytadan urinib ko\'ring.';
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -206,7 +149,7 @@ const AttendanceDetail: React.FC = () => {
 
     try {
       const result = await apiService.createAttendanceSession();
-      console.log('Attendance session created:', result);
+      // console.debug('Attendance session created:', result);
 
       // Navigate to the new session
       if (result && result.id) {
@@ -227,11 +170,11 @@ const AttendanceDetail: React.FC = () => {
     setIsLoading(true);
     try {
       const result = await apiService.getAttendanceSession(id);
-      console.log('Fetched attendance session:', result);
+      // console.debug('Fetched attendance session:', result);
       setAttendanceSession(result);
 
       // Auto-expand all rooms
-      const allRoomIds = new Set(result.rooms.map(room => room.room_id));
+      const allRoomIds = new Set<number>(result.rooms.map((room: { room_id: number }) => room.room_id));
       setExpandedRooms(allRoomIds);
 
     } catch (err) {
@@ -244,7 +187,7 @@ const AttendanceDetail: React.FC = () => {
 
   // Load attendance session on component mount
   useEffect(() => {
-    console.log('AttendanceDetail mounted with id:', id);
+    // console.debug('AttendanceDetail mounted with id:', id);
     if (id === 'new') {
       createAttendanceSession();
     } else {
@@ -252,18 +195,14 @@ const AttendanceDetail: React.FC = () => {
     }
   }, [id]);
 
-  // Get status statistics for session (updated for 2 statuses only)
+  // Get status statistics for session
   const getSessionStats = (session: AttendanceSession) => {
     let present = 0, absent = 0;
 
     session.rooms.forEach(room => {
       room.students.forEach(student => {
-        if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In') {
-          present++;
-        } else if (student.status === 'Yo\'q' || student.status === 'out' || student.status === 'Out') {
-          absent++;
-        }
-        // Skip "Kech" and other statuses
+        if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In') present++;
+        else if (student.status === "Yo'q" || student.status === 'out' || student.status === 'Out') absent++;
       });
     });
 
@@ -360,23 +299,18 @@ const AttendanceDetail: React.FC = () => {
         </div>
       )}
 
-      {successMessage && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-          <p className="text-sm text-emerald-600">{successMessage}</p>
-        </div>
-      )}
 
       {/* Statistics - Updated for 2 statuses only */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-emerald-50 rounded-lg p-4 text-center">
           <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-emerald-600">{stats.present}</p>
-          <p className="text-sm text-emerald-700">Bor (in)</p>
+          <p className="text-sm text-emerald-700">Bor</p>
         </div>
         <div className="bg-red-50 rounded-lg p-4 text-center">
           <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
-          <p className="text-sm text-red-700">Yo'q (out)</p>
+          <p className="text-sm text-red-700">Yo'q</p>
         </div>
       </div>
 
@@ -434,7 +368,7 @@ const AttendanceDetail: React.FC = () => {
                                 )}
                               >
                                 <CheckCircle className="w-6 h-6 mx-auto mb-2" />
-                                Bor (in)
+                                Bor
                               </button>
                               <button
                                 onClick={(e) => {
@@ -449,7 +383,7 @@ const AttendanceDetail: React.FC = () => {
                                 )}
                               >
                                 <XCircle className="w-6 h-6 mx-auto mb-2" />
-                                Yo'q (out)
+                                Yo'q
                               </button>
                             </div>
                           </div>
@@ -464,28 +398,18 @@ const AttendanceDetail: React.FC = () => {
         })}
       </div>
 
-      {/* Save Button */}
-      {hasUnsavedChanges && (
-        <div className="fixed bottom-20 left-4 right-4 z-50">
-          <Card className="p-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-center text-orange-600 bg-orange-50 rounded-lg p-3">
-                <div className="w-2 h-2 bg-orange-600 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-sm font-medium">Saqlanmagan o'zgarishlar mavjud</span>
-              </div>
-              <Button
-                onClick={saveAttendance}
-                disabled={isSaving}
-                variant="success"
-                className="w-full py-3 text-base font-semibold"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                {isSaving ? 'Saqlanmoqda...' : 'Davomatni Saqlash'}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* Save Button at the end (non-fixed) */}
+      <div className="pt-2">
+        <Button
+          onClick={saveAttendance}
+          disabled={isSaving}
+          variant="success"
+          className="w-full py-3 text-base font-semibold"
+        >
+          <Save className="w-5 h-5 mr-2" />
+          {isSaving ? 'Saqlanmoqda...' : 'Davomatni Saqlash'}
+        </Button>
+      </div>
     </div>
   );
 };

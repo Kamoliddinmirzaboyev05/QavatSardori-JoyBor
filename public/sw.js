@@ -23,6 +23,13 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  // Skip API requests and external URLs
+  if (event.request.url.includes('joyboryangi.pythonanywhere.com') || 
+      event.request.url.includes('api') ||
+      event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -34,6 +41,8 @@ self.addEventListener('fetch', (event) => {
         if (event.request.destination === 'document') {
           return caches.match('/');
         }
+        // For other requests, just fail gracefully
+        return new Response('Network error', { status: 408 });
       })
   );
 });

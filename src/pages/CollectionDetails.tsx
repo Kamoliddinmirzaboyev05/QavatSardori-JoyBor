@@ -1,240 +1,324 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, XCircle, DollarSign, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, DollarSign, Calendar, Users, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { useApp } from '../context/AppContext';
 import { formatDate } from '../utils/storage';
 import { clsx } from 'clsx';
+import { apiService } from '../services/api';
+import { toast } from 'sonner';
+
+interface StudentRecord {
+  id: number; // collection record id
+  student: {
+    id: number;
+    name: string;
+    last_name: string;
+  };
+  status: string; // "To'langan" | "To'lamagan"
+}
+
+interface Room {
+  room_id: number;
+  room_name: string;
+  students: StudentRecord[];
+}
+
+interface CollectionDetailApi {
+  id: number;
+  title: string;
+  amount: number;
+  description?: string;
+  deadline?: string;
+  floor: { id: number; name: string };
+  leader: { id: number; floor: string; user: string };
+  rooms: Room[];
+  created_at: string;
+}
+
+// Normalize status to strict ASCII values expected by backend
+const normalizeStatus = (value: string): "To'lagan" | "To'lamagan" => {
+  const v = (value || '').replace(/[`'ʻ`´]/g, "'");
+  if (v.toLowerCase().includes('lagan')) return "To'lagan";
+  return "To'lamagan";
+};
 
 const CollectionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, dispatch } = useApp();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [collection, setCollection] = useState<CollectionDetailApi | null>(null);
+  const [originalStatusById, setOriginalStatusById] = useState<Record<number, "To'lagan" | "To'lamagan">>({});
+  const [expandedRooms, setExpandedRooms] = useState<Set<number>>(new Set());
 
-  const collection = useMemo(() => {
-    return state.collections.find(c => c.id === id);
-  }, [state.collections, id]);
-
-  const activeStudents = useMemo(() => {
-    return state.students.filter(student => !student.isDeleted);
-  }, [state.students]);
-
-  const collectionPayments = useMemo(() => {
-    if (!collection) return [];
-    return state.payments.filter(payment => payment.collectionId === collection.id);
-  }, [state.payments, collection]);
-
-  const paymentsWithStudents = useMemo(() => {
-    return collectionPayments.map(payment => {
-      const student = activeStudents.find(s => s.id === payment.studentId);
-      return { payment, student };
-    }).filter(item => item.student);
-  }, [collectionPayments, activeStudents]);
-
-  const stats = useMemo(() => {
-    const total = collectionPayments.length;
-    const paid = collectionPayments.filter(p => p.isPaid).length;
-    const unpaid = total - paid;
-    const collected = collectionPayments.filter(p => p.isPaid).reduce((sum, p) => sum + p.amount, 0);
-    const expected = collectionPayments.reduce((sum, p) => sum + p.amount, 0);
-    
-    return { total, paid, unpaid, collected, expected };
-  }, [collectionPayments]);
-
-  const togglePayment = (paymentId: string) => {
-    const payment = state.payments.find(p => p.id === paymentId);
-    if (payment) {
-      dispatch({
-        type: 'UPDATE_PAYMENT',
-        payload: {
-          ...payment,
-          isPaid: !payment.isPaid,
-          paidAt: !payment.isPaid ? new Date().toISOString() : undefined
-        }
-      });
+  const fetchDetails = async () => {
+    if (!id) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiService.getCollection(id);
+      setCollection(data);
+      // Capture original statuses for change detection
+      const map: Record<number, "To'lagan" | "To'lamagan"> = {};
+      data.rooms.forEach((r: Room) => r.students.forEach((s: StudentRecord) => { map[s.id] = normalizeStatus(s.status); }));
+      setOriginalStatusById(map);
+      // Auto-expand all rooms for better mobile UX
+      const allRoomIds = new Set<number>(data.rooms.map((room: Room) => room.room_id));
+      setExpandedRooms(allRoomIds);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Yig\'im ma\'lumotlarini yuklashda xatolik';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDetails();
+  }, [id]);
+
+  const stats = useMemo(() => {
+    if (!collection) return { total: 0, paid: 0, unpaid: 0, collected: 0, expected: 0 };
+    const students = collection.rooms.flatMap(r => r.students);
+    const total = students.length;
+    const paid = students.filter(s => normalizeStatus(s.status) === "To'lagan").length;
+    const unpaid = total - paid;
+    const collected = paid * (collection.amount ?? 0);
+    const expected = total * (collection.amount ?? 0);
+    return { total, paid, unpaid, collected, expected };
+  }, [collection]);
+
+  const togglePayment = (recordId: number) => {
+    if (!collection) return;
+    setCollection(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        rooms: prev.rooms.map(room => ({
+          ...room,
+          students: room.students.map(s => s.id === recordId ? ({
+            ...s,
+            status: normalizeStatus(s.status) === "To'lagan" ? "To'lamagan" : "To'lagan"
+          }) : s)
+        }))
+      };
+    });
+  };
+
+  const toggleRoom = (roomId: number) => {
+    setExpandedRooms(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(roomId)) {
+        newSet.delete(roomId);
+      } else {
+        newSet.add(roomId);
+      }
+      return newSet;
+    });
+  };
+
+  const savePayments = async () => {
+    if (!collection) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const records: any[] = [];
+      collection.rooms.forEach((room: Room) => {
+        room.students.forEach((s: StudentRecord) => {
+          const normalized = normalizeStatus(s.status);
+          const statusCurly = normalized === "To'lagan" ? "To'lagan" : "To'lamagan";
+          records.push({ id: s.id, student_id: s.student.id, status: statusCurly });
+        });
+      });
+      // Debug: inspect outgoing payload
+      // eslint-disable-next-line no-console
+      console.log('Bulk update payload:', { records });
+      toast.success("To'lovlar muvaffaqiyatli saqlandi");
+      // Navigate back to collections list after successful save
+      navigate('/collections');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'To\'lovlarni saqlashda xatolik';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <div className="text-center py-12">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!collection) {
     return (
       <div className="p-4">
         <Card className="text-center py-8">
           <p className="text-gray-500">Yig'im topilmadi</p>
-          <Button onClick={() => navigate('/collections')} className="mt-4">
-            Orqaga qaytish
-          </Button>
+          <Button onClick={() => navigate('/collections')} className="mt-4">Orqaga qaytish</Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 pb-20">
       {/* Header */}
-      <div className="flex items-center space-x-3 mb-6">
-        <button
-          onClick={() => navigate('/collections')}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold text-gray-900">{collection.title}</h1>
-          <p className="text-sm text-gray-600">{collection.description}</p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <Button
+            onClick={() => navigate('/collections')}
+            variant="secondary"
+            size="sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">{collection.title}</h1>
+            {collection.description && <p className="text-sm text-gray-600">{collection.description}</p>}
+          </div>
         </div>
       </div>
 
-      {/* Collection Info */}
-      <Card>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            <DollarSign className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{collection.amount.toLocaleString()}</p>
-            <p className="text-sm text-gray-600">Miqdor (so'm)</p>
-          </div>
-          <div className="text-center">
-            <Calendar className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-            <p className="text-lg font-bold text-gray-900">{formatDate(collection.dueDate)}</p>
-            <p className="text-sm text-gray-600">Muddat</p>
-          </div>
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">{error}</p>
         </div>
-      </Card>
+      )}
+
+      {/* Collection Info */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="text-center p-4">
+          <DollarSign className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-gray-900">{(collection.amount ?? 0).toLocaleString()} so'm</p>
+          <p className="text-sm text-gray-600">Miqdor</p>
+        </Card>
+        <Card className="text-center p-4">
+          <Calendar className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+          <p className="text-lg font-bold text-gray-900">{collection.deadline ? formatDate(collection.deadline) : '—'}</p>
+          <p className="text-sm text-gray-600">Muddat</p>
+        </Card>
+      </div>
 
       {/* Statistics */}
-      <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistika</h3>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <CheckCircle className="w-6 h-6 text-emerald-600" />
-            </div>
-            <p className="text-xl font-bold text-emerald-600">{stats.paid}</p>
-            <p className="text-sm text-gray-600">To'langan</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <XCircle className="w-6 h-6 text-red-600" />
-            </div>
-            <p className="text-xl font-bold text-red-600">{stats.unpaid}</p>
-            <p className="text-sm text-gray-600">To'lanmagan</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-xl font-bold text-blue-600">{stats.total}</p>
-            <p className="text-sm text-gray-600">Jami</p>
-          </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-emerald-50 rounded-lg p-4 text-center">
+          <CheckCircle className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
+          <p className="text-xl font-bold text-emerald-600">{stats.paid}</p>
+          <p className="text-sm text-emerald-700">To'langan</p>
         </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Yig'ilgan</span>
-            <span className="font-medium text-emerald-600">{stats.collected.toLocaleString()} so'm</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Qolgan</span>
-            <span className="font-medium text-red-600">{(stats.expected - stats.collected).toLocaleString()} so'm</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-emerald-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${stats.expected > 0 ? (stats.collected / stats.expected) * 100 : 0}%` }}
-            />
-          </div>
-          <p className="text-center text-sm text-gray-600">
-            {stats.expected > 0 ? Math.round((stats.collected / stats.expected) * 100) : 0}% to'langan
-          </p>
+        <div className="bg-red-50 rounded-lg p-4 text-center">
+          <XCircle className="w-6 h-6 text-red-600 mx-auto mb-2" />
+          <p className="text-xl font-bold text-red-600">{stats.unpaid}</p>
+          <p className="text-sm text-red-700">To'lanmagan</p>
         </div>
-      </Card>
+        <div className="bg-blue-50 rounded-lg p-4 text-center">
+          <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+          <p className="text-xl font-bold text-blue-600">{stats.total}</p>
+          <p className="text-sm text-blue-700">Jami</p>
+        </div>
+      </div>
 
-      {/* Students List */}
-      <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Talabalar ro'yxati</h3>
-        <div className="space-y-3">
-          {paymentsWithStudents.length > 0 ? (
-            paymentsWithStudents.map(({ payment, student }) => (
-              <div 
-                key={payment.id}
-                className={clsx(
-                  "flex items-center justify-between p-3 rounded-lg border-2 transition-all",
-                  payment.isPaid 
-                    ? "bg-emerald-50 border-emerald-200" 
-                    : "bg-gray-50 border-gray-200"
+      {/* Rooms & Students */}
+      <div className="space-y-4">
+        {collection.rooms.map(room => (
+          <Card key={room.room_id} className="overflow-hidden">
+            <div
+              className="cursor-pointer p-4"
+              onClick={() => toggleRoom(room.room_id)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">{room.room_name}</h3>
+                  <p className="text-sm text-gray-600">{room.students.length} ta talaba</p>
+                </div>
+                {expandedRooms.has(room.room_id) ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
                 )}
-              >
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => togglePayment(payment.id)}
-                    className="flex-shrink-0"
-                  >
-                    {payment.isPaid ? (
-                      <CheckCircle className="w-6 h-6 text-emerald-600" />
-                    ) : (
-                      <XCircle className="w-6 h-6 text-gray-400 hover:text-red-500 transition-colors" />
-                    )}
-                  </button>
-                  <div>
-                    <p className="font-medium text-gray-900">{student?.name}</p>
-                    <p className="text-sm text-gray-600">{student?.room}-xona • {student?.phone}</p>
+              </div>
+            </div>
+
+            {expandedRooms.has(room.room_id) && (
+              <div className="px-4 pb-4">
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="space-y-3">
+                    {room.students.map(student => (
+                      <div key={student.id} className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="flex flex-col space-y-4">
+                          <div className="text-center">
+                            <p className="font-medium text-gray-900 text-lg">
+                              {student.student.name} {student.student.last_name}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Record ID: {student.id} • Student ID: {student.student.id}
+                            </p>
+                          </div>
+                          <div className="text-center mb-3">
+                            <p className="font-bold text-gray-900 text-lg">
+                              {(collection.amount ?? 0).toLocaleString()} so'm
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePayment(student.id);
+                              }}
+                              className={clsx(
+                                "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                normalizeStatus(student.status) === "To'lagan"
+                                  ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                              )}
+                            >
+                              <CheckCircle className="w-6 h-6 mx-auto mb-2" />
+                              To'langan
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePayment(student.id);
+                              }}
+                              className={clsx(
+                                "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                normalizeStatus(student.status) === "To'lamagan"
+                                  ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
+                              )}
+                            >
+                              <XCircle className="w-6 h-6 mx-auto mb-2" />
+                              To'lanmagan
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900">
-                    {payment.amount.toLocaleString()} so'm
-                  </p>
-                  {payment.isPaid && payment.paidAt && (
-                    <p className="text-xs text-emerald-600">
-                      {formatDate(payment.paidAt)} da to'langan
-                    </p>
-                  )}
-                </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Talabalar ro'yxati bo'sh</p>
-            </div>
-          )}
-        </div>
-      </Card>
+            )}
+          </Card>
+        ))}
+      </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tez amallar</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="success"
-            onClick={() => {
-              paymentsWithStudents.forEach(({ payment }) => {
-                if (!payment.isPaid) {
-                  togglePayment(payment.id);
-                }
-              });
-            }}
-            className="w-full"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Barchasini to'langan deb belgilash
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              paymentsWithStudents.forEach(({ payment }) => {
-                if (payment.isPaid) {
-                  togglePayment(payment.id);
-                }
-              });
-            }}
-            className="w-full"
-          >
-            <XCircle className="w-4 h-4 mr-2" />
-            Barchasini bekor qilish
-          </Button>
-        </div>
-      </Card>
+      {/* Save Button */}
+      <div className="pt-2">
+        <Button onClick={savePayments} disabled={isSaving} variant="success" className="w-full py-3 text-base font-semibold">
+          <Save className="w-5 h-5 mr-2" />
+          {isSaving ? 'Saqlanmoqda...' : 'To\'lovlarni Saqlash'}
+        </Button>
+      </div>
     </div>
   );
 };

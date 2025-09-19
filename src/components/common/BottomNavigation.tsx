@@ -5,7 +5,8 @@ import {
   Calendar, 
   ClipboardCheck, 
   DollarSign, 
-  MessageCircle
+  MessageCircle,
+  User
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -17,12 +18,13 @@ const BottomNavigation: React.FC = () => {
     { path: '/duty-schedule', icon: Calendar, label: 'Navbatchilik' },
     { path: '/attendance', icon: ClipboardCheck, label: 'Davomat' },
     { path: '/collections', icon: DollarSign, label: 'Yig\'imlar' },
-    { path: '/communication', icon: MessageCircle, label: 'Aloqa' }
+    { path: '/communication', icon: MessageCircle, label: 'Aloqa' },
+    { path: '/profile', icon: User, label: 'Profil' }
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-      <div className="grid grid-cols-5 py-2">
+      <div className="grid grid-cols-6 py-2">
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
           

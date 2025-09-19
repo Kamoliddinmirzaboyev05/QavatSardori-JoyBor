@@ -1,3 +1,11 @@
+export interface User {
+  id: string;
+  name: string;
+  lastName: string;
+  email?: string;
+  role: string;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -61,6 +69,7 @@ export interface Request {
 
 export interface AppState {
   isAuthenticated: boolean;
+  user?: User;
   students: Student[];
   attendance: AttendanceRecord[];
   collections: Collection[];
@@ -68,4 +77,10 @@ export interface AppState {
   announcements: Announcement[];
   announcementReads: AnnouncementRead[];
   requests: Request[];
+}
+
+export interface LeaderStatistics {
+  active_students: number;
+  collection_degree: number;
+  today_attendance: number;
 }

@@ -150,13 +150,31 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async createCollection(collectionData: any) {
-    const response = await fetch(`${API_BASE_URL}/collections/`, {
+  async getCollection(collectionId: string) {
+    const response = await fetch(`${API_BASE_URL}/collections/${collectionId}/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async createCollection(collectionData: { title: string; amount: number; description?: string; deadline?: string; }) {
+    const response = await fetch(`${API_BASE_URL}/collections/create/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(collectionData),
     });
 
+    return this.handleResponse(response);
+  }
+
+  async updateCollectionRecords(collectionId: string, records: any[]) {
+    const response = await fetch(`${API_BASE_URL}/collection-records/${collectionId}/bulk-update/`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ records }),
+    });
     return this.handleResponse(response);
   }
 
@@ -207,6 +225,15 @@ class ApiService {
       body: JSON.stringify(announcementData),
     });
 
+    return this.handleResponse(response);
+  }
+
+  // Leader Statistics
+  async getLeaderStatistics() {
+    const response = await fetch(`${API_BASE_URL}/statistic-for-leader/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
     return this.handleResponse(response);
   }
 }

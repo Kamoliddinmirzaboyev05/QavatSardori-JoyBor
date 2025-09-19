@@ -52,13 +52,19 @@ const AttendanceList: React.FC = () => {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch('https://joyboryangi.pythonanywhere.com/attendance-sessions/', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -83,6 +89,60 @@ const AttendanceList: React.FC = () => {
       console.error('Error fetching attendance sessions:', err);
       setAttendanceSessions([]);
       setError('Davomat sessiyalarini yuklashda xatolik yuz berdi');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Create attendance session
+  const createAttendanceSession = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = sessionStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('Token topilmadi');
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch('https://joyboryangi.pythonanywhere.com/attendance-sessions/create/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: {}
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          sessionStorage.clear();
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(`Davomat sessiyasini yaratishda xatolik: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Attendance session created:', result);
+      
+      // Refresh attendance sessions
+      await fetchAttendanceSessions();
+      
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('So\'rov vaqti tugadi. Internetni tekshiring.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Xatolik yuz berdi');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -151,11 +211,12 @@ const AttendanceList: React.FC = () => {
           <p className="text-sm text-gray-600">Olingan davomatlar ro'yxati</p>
         </div>
         <Button
-          onClick={handleCreateNew}
+          onClick={createAttendanceSession}
+          disabled={isLoading}
           className="w-full sm:w-auto"
         >
           <Calendar className="w-4 h-4 mr-2" />
-          Yangi Davomat
+          {isLoading ? 'Yaratilmoqda...' : 'Davomat Olish'}
         </Button>
       </div>
 
@@ -218,12 +279,12 @@ const AttendanceList: React.FC = () => {
                       <div className="bg-emerald-50 rounded-lg p-3 text-center">
                         <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
                         <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-                        <p className="text-xs text-emerald-700">Bor (In)</p>
+                        <p className="text-xs text-emerald-700">Bor</p>
                       </div>
                       <div className="bg-red-50 rounded-lg p-3 text-center">
                         <XCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
                         <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-                        <p className="text-xs text-red-700">Yo'q (Out)</p>
+                        <p className="text-xs text-red-700">Yo'q</p>
                       </div>
                     </div>
 

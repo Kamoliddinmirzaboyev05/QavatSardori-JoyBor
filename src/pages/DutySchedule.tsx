@@ -130,8 +130,6 @@ const DutySchedule: React.FC = () => {
         </Button>
       </div>
 
-
-
       {/* Current Duty */}
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Bugungi navbatchi</h3>
@@ -161,11 +159,12 @@ const DutySchedule: React.FC = () => {
                  currentDuty.status === 'bajarilgan' ? 'BAJARILGAN' : 'BAJARILMAGAN'}
               </div>
               {currentDuty.status === 'tayinlangan' && (
-                <div className="flex space-x-1">
+                <div className="flex flex-col space-y-1">
                   <Button
                     size="sm"
                     variant="success"
                     onClick={() => markDutyCompleted(currentDuty.id)}
+                    className="text-xs px-2 py-1 whitespace-nowrap"
                   >
                     Bajarildi
                   </Button>
@@ -173,6 +172,7 @@ const DutySchedule: React.FC = () => {
                     size="sm"
                     variant="danger"
                     onClick={() => markDutyNotCompleted(currentDuty.id)}
+                    className="text-xs px-2 py-1 whitespace-nowrap"
                   >
                     Bajarilmadi
                   </Button>
@@ -192,8 +192,6 @@ const DutySchedule: React.FC = () => {
           </div>
         )}
       </Card>
-
-
 
       {/* Duty History */}
       <Card>
