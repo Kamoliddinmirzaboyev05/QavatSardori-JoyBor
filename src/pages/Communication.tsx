@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Plus, MessageCircle, Clock, CheckCircle, AlertCircle, Megaphone, AlertTriangle } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -77,14 +78,37 @@ const Communication: React.FC = () => {
     hal_qilindi: state.requests.filter(r => r.status === 'hal_qilindi').length
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
+    <motion.div 
+      className="p-4 space-y-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div 
+        className="flex items-center justify-between"
+        variants={itemVariants}
+      >
         <div>
           <h2 className="text-xl font-bold text-gray-900">Aloqa</h2>
           <p className="text-sm text-gray-600">So'rovlar va e'lonlar boshqaruvi</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Tab Navigation */}
       <div className="flex bg-gray-100 rounded-lg p-1">
@@ -278,7 +302,7 @@ const Communication: React.FC = () => {
         <AnnouncementForm onClose={() => setShowAnnouncementForm(false)} />
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

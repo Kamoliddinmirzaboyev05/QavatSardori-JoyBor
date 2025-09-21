@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -77,12 +78,12 @@ const AttendanceList: React.FC = () => {
 
       const result = await response.json();
       const sessions = Array.isArray(result) ? result : [];
-      
+
       // Sort by date (most recent first)
-      const sortedSessions = sessions.sort((a, b) => 
+      const sortedSessions = sessions.sort((a, b) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-      
+
       setAttendanceSessions(sortedSessions);
 
     } catch (err) {
@@ -128,15 +129,25 @@ const AttendanceList: React.FC = () => {
           window.location.href = '/login';
           return;
         }
+
+        // Handle specific error for already existing attendance
+        if (response.status === 400) {
+          const errorData = await response.json();
+          if (errorData.message && errorData.message.includes('allaqachon yaratilgan')) {
+            setError('Bugungi kunda ushbu qavat uchun davomat allaqachon yaratilgan!');
+            return;
+          }
+        }
+
         throw new Error(`Davomat sessiyasini yaratishda xatolik: ${response.status}`);
       }
 
       const result = await response.json();
       console.log('Attendance session created:', result);
-      
+
       // Refresh attendance sessions
       await fetchAttendanceSessions();
-      
+
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         setError('So\'rov vaqti tugadi. Internetni tekshiring.');
@@ -202,123 +213,171 @@ const AttendanceList: React.FC = () => {
     navigate('/attendance/new');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="p-4 space-y-4 pb-20">
+    <motion.div
+      className="p-4 space-y-4 pb-20"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div className="flex flex-col space-y-3">
+      <motion.div
+        className="flex flex-col space-y-3"
+        variants={itemVariants}
+      >
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Davomat Tarixi</h2>
           <p className="text-sm text-gray-600">Olingan davomatlar ro'yxati</p>
         </div>
-        <Button
-          onClick={createAttendanceSession}
-          disabled={isLoading}
-          className="w-full sm:w-auto"
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Calendar className="w-4 h-4 mr-2" />
-          {isLoading ? 'Yaratilmoqda...' : 'Davomat Olish'}
-        </Button>
-      </div>
+          <Button
+            onClick={createAttendanceSession}
+            disabled={isLoading}
+            className="w-full sm:w-auto"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            {isLoading ? 'Yaratilmoqda...' : 'Davomat Olish'}
+          </Button>
+        </motion.div>
+      </motion.div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+        <motion.div
+          className="p-3 bg-red-50 border border-red-200 rounded-lg"
+          variants={itemVariants}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
           <p className="text-sm text-red-600">{error}</p>
-        </div>
+        </motion.div>
       )}
 
       {/* Loading State */}
       {isLoading && (
-        <div className="text-center py-8">
+        <motion.div
+          className="text-center py-8"
+          variants={itemVariants}
+        >
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Davomatlar yuklanmoqda...</p>
-        </div>
+        </motion.div>
       )}
 
       {/* Attendance Sessions List */}
       {!isLoading && (
-        <div className="space-y-3">
+        <motion.div
+          className="space-y-3"
+          variants={containerVariants}
+        >
           {attendanceSessions.length > 0 ? (
-            attendanceSessions.map((session) => {
+            attendanceSessions.map((session, index) => {
               const stats = getSessionStats(session);
               const displayDate = formatDisplayDate(session.date);
 
               return (
-                <Card 
-                  key={session.id} 
-                  className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleSessionClick(session)}
+                <motion.div
+                  key={session.id}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Calendar className="w-5 h-5 text-blue-600" />
-                          <h3 className="font-semibold text-gray-900 text-lg">
-                            {displayDate}
-                          </h3>
+                  <Card
+                    className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSessionClick(session)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Calendar className="w-5 h-5 text-blue-600" />
+                            <h3 className="font-semibold text-gray-900 text-lg">
+                              {displayDate}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {session.floor.name} • {formatDate(session.date)}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {session.floor.name} • {formatDate(session.date)}
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-gray-900">
+                              {stats.present}/{stats.total}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0}%
+                            </p>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                        </div>
+                      </div>
+
+                      {/* Statistics - Updated for 2 statuses only */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                          <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
+                          <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
+                          <p className="text-xs text-emerald-700">Bor</p>
+                        </div>
+                        <div className="bg-red-50 rounded-lg p-3 text-center">
+                          <XCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
+                          <p className="text-lg font-bold text-red-600">{stats.absent}</p>
+                          <p className="text-xs text-red-700">Yo'q</p>
+                        </div>
+                      </div>
+
+                      {/* Quick room summary */}
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 text-center">
+                          {session.rooms.length} ta xona • {session.rooms.reduce((sum, room) => sum + room.students.length, 0)} ta talaba
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-gray-900">
-                            {stats.present}/{stats.total}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0}%
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      </div>
                     </div>
-
-                    {/* Statistics - Updated for 2 statuses only */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                        <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-                        <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-                        <p className="text-xs text-emerald-700">Bor</p>
-                      </div>
-                      <div className="bg-red-50 rounded-lg p-3 text-center">
-                        <XCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
-                        <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-                        <p className="text-xs text-red-700">Yo'q</p>
-                      </div>
-                    </div>
-
-                    {/* Quick room summary */}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 text-center">
-                        {session.rooms.length} ta xona • {session.rooms.reduce((sum, room) => sum + room.students.length, 0)} ta talaba
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                </motion.div>
               );
             })
           ) : (
-            <Card className="text-center py-12">
-              <div className="bg-blue-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                <Users className="w-10 h-10 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Davomatlar yo'q</h3>
-              <p className="text-gray-600 mb-6">
-                Hali hech qanday davomat olinmagan
-              </p>
-              <Button
-                onClick={handleCreateNew}
-                className="mx-auto"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Birinchi Davomatni Boshlash
-              </Button>
-            </Card>
+            <motion.div variants={itemVariants}>
+              <Card className="text-center py-12">
+                <div className="bg-blue-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-10 h-10 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Davomatlar yo'q</h3>
+                <p className="text-gray-600 mb-6">
+                  Hali hech qanday davomat olinmagan
+                </p>
+                <Button
+                  onClick={handleCreateNew}
+                  className="mx-auto"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Birinchi Davomatni Boshlash
+                </Button>
+              </Card>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

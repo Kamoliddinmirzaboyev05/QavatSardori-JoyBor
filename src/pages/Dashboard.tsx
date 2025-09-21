@@ -114,9 +114,11 @@ const Dashboard: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Bugungi davomat</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {statsLoading ? '...' : (stats?.today_attendance || presentToday)}
+                  {statsLoading ? '...' : (stats?.today_attendance || `${presentToday}/${activeStudents.length}`)}
                 </p>
-                <p className="text-xs text-gray-500">{attendanceRate}%</p>
+                <p className="text-xs text-gray-500">
+                  Bor / Jami talabalar
+                </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -131,7 +133,10 @@ const Dashboard: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Yig'im darajasi</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {statsLoading ? '...' : (stats?.collection_degree || collectionRate)}%
+                  {statsLoading ? '...' : (stats?.collection_degree || `${collectionRate}%`)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  To'langan / Jami
                 </p>
               </div>
               <div className="bg-yellow-100 p-3 rounded-full">
@@ -145,8 +150,13 @@ const Dashboard: React.FC = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Ochiq so'rovlar</p>
-                <p className="text-2xl font-bold text-gray-900">{openRequests}</p>
+                <p className="text-sm font-medium text-gray-600">Ochiq vazifalar</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statsLoading ? '...' : (stats?.open_tasks || openRequests)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Bajarilmagan
+                </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
                 <MessageCircle className="w-6 h-6 text-purple-600" />

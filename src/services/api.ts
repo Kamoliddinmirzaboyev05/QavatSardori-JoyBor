@@ -236,6 +236,25 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
+
+  // Profile Management
+  async updateProfile(profileData: { first_name: string; last_name: string; phone?: string; email?: string; }) {
+    const response = await fetch(`${API_BASE_URL}/profile/update/`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(profileData),
+    });
+    return this.handleResponse(response);
+  }
+
+  async changePassword(passwordData: { old_password: string; new_password: string; }) {
+    const response = await fetch(`${API_BASE_URL}/change-password/`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(passwordData),
+    });
+    return this.handleResponse(response);
+  }
 }
 
 export const apiService = new ApiService();
