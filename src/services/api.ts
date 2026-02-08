@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://joyboryangi.pythonanywhere.com';
+const API_BASE_URL = 'https://joyborv1.pythonanywhere.com/api';
 
 class ApiService {
   private getAuthHeaders() {
@@ -252,6 +252,37 @@ class ApiService {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(passwordData),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Floor Leader Management
+  async createFloorLeader(leaderData: {
+    user_info: {
+      username: string;
+      password: string;
+      role: string;
+      email: string;
+    };
+    floor_info: {
+      name: string;
+      gender: 'male' | 'female';
+    };
+    floor: number;
+    user: number;
+  }) {
+    const response = await fetch(`${API_BASE_URL}/floor-leaders/`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(leaderData),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getFloorLeaders() {
+    const response = await fetch(`${API_BASE_URL}/floor-leaders/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
     });
     return this.handleResponse(response);
   }

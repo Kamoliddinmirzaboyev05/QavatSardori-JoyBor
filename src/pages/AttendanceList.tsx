@@ -4,7 +4,6 @@ import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-reac
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { formatDate } from '../utils/storage';
-import { clsx } from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
 interface Student {
@@ -288,7 +287,7 @@ const AttendanceList: React.FC = () => {
           variants={containerVariants}
         >
           {attendanceSessions.length > 0 ? (
-            attendanceSessions.map((session, index) => {
+            attendanceSessions.map((session) => {
               const stats = getSessionStats(session);
               const displayDate = formatDisplayDate(session.date);
 
