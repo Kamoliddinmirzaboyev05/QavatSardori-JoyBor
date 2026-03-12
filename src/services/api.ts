@@ -54,10 +54,11 @@ class ApiService {
   }
 
   // Attendance Sessions
-  async createAttendanceSession() {
+  async createAttendanceSession(data?: { date: string; floor: number; leader: number }) {
     const response = await fetch(`${API_BASE_URL}/attendance-sessions/create/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
+      body: JSON.stringify(data || {}),
     });
 
     return this.handleResponse(response);
@@ -169,11 +170,20 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updateCollectionRecords(collectionId: string, records: any[]) {
-    const response = await fetch(`${API_BASE_URL}/collection-records/${collectionId}/bulk-update/`, {
-      method: 'PATCH',
+  async updateCollectionRecords(recordId: number, data: { status: string; collection: number; student: number }) {
+    const response = await fetch(`${API_BASE_URL}/collection-records/${recordId}/`, {
+      method: 'PUT',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ records }),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async createCollectionRecord(data: { status: string; collection: number; student: number }) {
+    const response = await fetch(`${API_BASE_URL}/collection-records/`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
     });
     return this.handleResponse(response);
   }
@@ -238,6 +248,14 @@ class ApiService {
   }
 
   // Profile Management
+  async getProfile() {
+    const response = await fetch(`${API_BASE_URL}/profile/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   async updateProfile(profileData: { first_name: string; last_name: string; phone?: string; email?: string; }) {
     const response = await fetch(`${API_BASE_URL}/profile/update/`, {
       method: 'PATCH',

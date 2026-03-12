@@ -125,22 +125,47 @@ const CollectionDetails: React.FC = () => {
     setIsSaving(true);
     setError(null);
     try {
-      const records: any[] = [];
-      collection.rooms.forEach((room: Room) => {
-        room.students.forEach((s: StudentRecord) => {
-          const normalized = normalizeStatus(s.status);
-          const statusCurly = normalized === "To'lagan" ? "To'lagan" : "To'lamagan";
-          records.push({ id: s.id, student_id: s.student.id, status: statusCurly });
-        });
-      });
-      // Debug: inspect outgoing payload
-      // eslint-disable-next-line no-console
-      console.log('Bulk update payload:', { records });
-      toast.success("To'lovlar muvaffaqiyatli saqlandi");
-      // Navigate back to collections list after successful save
-      navigate('/collections');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'To\'lovlarni saqlashda xatolik';
+      let changesCount = 0;
+      const promises = [];
+
+      // Find all changed records
+      for (const room of collection.rooms) {
+        for (const student of room.students) {
+          // Get current status from UI state
+          const currentStatus = student.status;
+          // Get original status
+          // Note: originalStatusById keys are student record IDs
+          const originalStatus = originalStatusById[student.id];
+          
+          // Normalize both to compare
+          const normalizedCurrent = normalizeStatus(currentStatus);
+          const normalizedOriginal = normalizeStatus(originalStatus);
+          
+          if (normalizedCurrent !== normalizedOriginal) {
+            changesCount++;
+            
+            // Call API for each changed record
+            // The API expects: status, collection (ID), student (ID)
+            promises.push(apiService.updateCollectionRecords(student.id, {
+              status: normalizedCurrent,
+              collection: collection.id,
+              student: student.student.id
+            }));
+          }
+        }
+      }
+
+      if (changesCount > 0) {
+        await Promise.all(promises);
+        toast.success(`${changesCount} ta o'zgarish saqlandi`);
+        // Refresh data to ensure sync with server
+        await fetchDetails();
+      } else {
+        toast.info('O\'zgarishlar yo\'q');
+      }
+    } catch (err: any) {
+      console.error('Error saving changes:', err);
+      const message = err.message || 'Saqlashda xatolik yuz berdi';
       setError(message);
       toast.error(message);
     } finally {

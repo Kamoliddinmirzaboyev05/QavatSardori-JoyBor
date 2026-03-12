@@ -6,9 +6,12 @@ import { X } from 'lucide-react';
 import Button from '../common/Button';
 import { useApp } from '../../context/AppContext';
 import { Student } from '../../types';
+import apiService from '../../services/api';
+import { toast } from 'sonner';
 
 const studentSchema = z.object({
   name: z.string().min(2, 'Ism kamida 2 ta belgidan iborat bo\'lishi kerak'),
+  lastName: z.string().min(2, 'Familiya kamida 2 ta belgidan iborat bo\'lishi kerak'),
   room: z.string().min(1, 'Xona raqami talab qilinadi'),
   phone: z.string().min(10, 'Telefon raqami kamida 10 ta belgidan iborat bo\'lishi kerak')
 });
@@ -27,27 +30,66 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
     resolver: zodResolver(studentSchema),
     defaultValues: student ? {
       name: student.name,
+      lastName: student.lastName || '',
       room: student.room,
       phone: student.phone
-    } : undefined
+    } : {
+      name: '',
+      lastName: '',
+      room: '',
+      phone: ''
+    }
   });
 
   const onSubmit = async (data: StudentFormData) => {
     try {
       if (student) {
+        // Update existing student
+        const updateData = {
+          first_name: data.name,
+          last_name: data.lastName,
+          room: data.room,
+          phone: data.phone
+        };
+        
+        await apiService.updateStudent(student.id, updateData);
+        
         dispatch({
           type: 'UPDATE_STUDENT',
           payload: { ...student, ...data }
         });
+        toast.success('Talaba ma\'lumotlari yangilandi');
       } else {
+        // Create new student
+        const createData = {
+          first_name: data.name,
+          last_name: data.lastName,
+          room: data.room,
+          phone: data.phone
+        };
+        
+        const response = await apiService.createStudent(createData);
+        
+        // Use response data if available, or fall back to form data + generated ID
+        const newStudent = {
+          id: response?.id?.toString() || Date.now().toString(),
+          name: data.name,
+          lastName: data.lastName,
+          room: data.room,
+          phone: data.phone,
+          createdAt: new Date().toISOString()
+        };
+
         dispatch({
           type: 'ADD_STUDENT',
-          payload: data
+          payload: newStudent
         });
+        toast.success('Yangi talaba qo\'shildi');
       }
       onClose();
     } catch (error) {
       console.error('Error saving student:', error);
+      toast.error('Talabani saqlashda xatolik yuz berdi');
     }
   };
 
@@ -67,19 +109,36 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              To'liq ismi
-            </label>
-            <input
-              {...register('name')}
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Talaba ismini kiriting"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ismi
+              </label>
+              <input
+                {...register('name')}
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ismi"
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Familiyasi
+              </label>
+              <input
+                {...register('lastName')}
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Familiyasi"
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+              )}
+            </div>
           </div>
 
           <div>

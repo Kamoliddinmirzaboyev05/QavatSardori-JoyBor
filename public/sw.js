@@ -24,7 +24,7 @@ self.addEventListener('install', (event) => {
 // Fetch event
 self.addEventListener('fetch', (event) => {
   // Skip API requests and external URLs
-  if (event.request.url.includes('joyboryangi.pythonanywhere.com') || 
+  if (event.request.url.includes('joyborv1.pythonanywhere.com') || 
       event.request.url.includes('api') ||
       event.request.method !== 'GET') {
     return;

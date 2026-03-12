@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { formatDate } from '../utils/storage';
+import { formatDate, getCurrentDate } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
+import apiService from '../services/api';
+import { useApp } from '../context/AppContext';
 
 interface Student {
   id: number;
@@ -39,6 +41,7 @@ interface AttendanceSession {
 
 const AttendanceList: React.FC = () => {
   const navigate = useNavigate();
+  const { state } = useApp();
   const [attendanceSessions, setAttendanceSessions] = useState<AttendanceSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,48 +50,20 @@ const AttendanceList: React.FC = () => {
   const fetchAttendanceSessions = async () => {
     setIsLoading(true);
     try {
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch('https://joyboryangi.pythonanywhere.com/attendance-sessions/', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          sessionStorage.clear();
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error(`Davomat sessiyalarini olishda xatolik: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await apiService.getAttendanceSessions();
       const sessions = Array.isArray(result) ? result : [];
 
       // Sort by date (most recent first)
-      const sortedSessions = sessions.sort((a, b) =>
+      const sortedSessions = sessions.sort((a: AttendanceSession, b: AttendanceSession) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
       setAttendanceSessions(sortedSessions);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching attendance sessions:', err);
       setAttendanceSessions([]);
-      setError('Davomat sessiyalarini yuklashda xatolik yuz berdi');
+      setError(err.message || 'Davomat sessiyalarini yuklashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
     }
@@ -100,59 +75,46 @@ const AttendanceList: React.FC = () => {
     setError(null);
 
     try {
-      const token = sessionStorage.getItem('access_token');
-      if (!token) {
-        throw new Error('Token topilmadi');
+      let payload = undefined;
+
+      // Try to use info from state first (it should be populated after login)
+      if (state.user?.floor && state.user?.floorLeaderId) {
+        payload = {
+          date: getCurrentDate(),
+          floor: state.user.floor,
+          leader: state.user.floorLeaderId
+        };
+      } 
+      
+      // If payload is still undefined, try fetching floor leaders list
+      if (!payload) {
+        const leaders = await apiService.getFloorLeaders();
+        const currentLeader = Array.isArray(leaders) 
+          ? leaders.find((l: any) => l.user_info.username === state.user?.name || (state.user?.id && l.user === parseInt(state.user.id)))
+          : null;
+        
+        if (currentLeader) {
+          payload = {
+            date: getCurrentDate(),
+            floor: currentLeader.floor,
+            leader: currentLeader.id
+          };
+        } else {
+          console.warn('Current user is not found in floor leaders list. Sending empty payload or default values.');
+        }
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch('https://joyboryangi.pythonanywhere.com/attendance-sessions/create/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: {}
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          sessionStorage.clear();
-          window.location.href = '/login';
-          return;
-        }
-
-        // Handle specific error for already existing attendance
-        if (response.status === 400) {
-          const errorData = await response.json();
-          if (errorData.message && errorData.message.includes('allaqachon yaratilgan')) {
-            setError('Bugungi kunda ushbu qavat uchun davomat allaqachon yaratilgan!');
-            return;
-          }
-        }
-
-        throw new Error(`Davomat sessiyasini yaratishda xatolik: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Attendance session created:', result);
-
-      // Refresh attendance sessions
-      await fetchAttendanceSessions();
-
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        setError('So\'rov vaqti tugadi. Internetni tekshiring.');
+      const result = await apiService.createAttendanceSession(payload);
+      
+      // Navigate to the detail page for the new session
+      if (result && result.id) {
+        navigate(`/attendance/${result.id}`);
       } else {
-        setError(err instanceof Error ? err.message : 'Xatolik yuz berdi');
+        throw new Error('Sessiya yaratilmadi');
       }
+    } catch (err: any) {
+      console.error('Error creating attendance session:', err);
+      setError(err.message || 'Yangi davomat sessiyasini yaratishda xatolik');
     } finally {
       setIsLoading(false);
     }

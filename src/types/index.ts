@@ -4,11 +4,14 @@ export interface User {
   lastName: string;
   email?: string;
   role: string;
+  floor?: number;
+  floorLeaderId?: number;
 }
 
 export interface Student {
   id: string;
   name: string;
+  lastName?: string;
   room: string;
   phone: string;
   createdAt: string;
@@ -83,4 +86,5 @@ export interface LeaderStatistics {
   active_students: number;
   collection_degree: number;
   today_attendance: number;
+  open_tasks?: number;
 }

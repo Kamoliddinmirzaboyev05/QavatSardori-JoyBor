@@ -29,24 +29,21 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onClose, onSuccess }) =
     }
   });
 
-  const onSubmit = async (data: CollectionFormData) => {
+  const onSubmit = async (data: any) => {
     try {
-      // Map dueDate -> deadline for API
       const payload = {
         title: data.title,
         amount: data.amount,
         description: data.description,
-        deadline: new Date(data.dueDate).toISOString(),
+        deadline: new Date(data.dueDate).toISOString().split('T')[0], // YYYY-MM-DD format
       };
 
       await apiService.createCollection(payload);
-      toast.success('Yig\'im muvaffaqiyatli yaratildi');
-      reset();
+      if (onSuccess) onSuccess();
       onClose();
-      onSuccess?.();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Yig\'im yaratishda xatolik';
-      toast.error(message);
+    } catch (error: any) {
+      console.error('Error creating collection:', error);
+      toast.error(error.message || 'Yig\'im yaratishda xatolik yuz berdi');
     }
   };
 

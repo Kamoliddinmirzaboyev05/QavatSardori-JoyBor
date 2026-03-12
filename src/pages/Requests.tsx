@@ -22,7 +22,7 @@ const Requests: React.FC = () => {
 
   const getStudentName = (studentId: string) => {
     const student = activeStudents.find(s => s.id === studentId);
-    return student ? student.name : 'Noma\'lum talaba';
+    return student ? `${student.name} ${student.lastName || ''}`.trim() : 'Noma\'lum talaba';
   };
 
   const updateRequestStatus = (requestId: string, status: 'ochiq' | 'jarayonda' | 'hal_qilindi') => {

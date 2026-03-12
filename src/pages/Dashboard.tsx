@@ -24,7 +24,12 @@ const Dashboard: React.FC = () => {
         const data = await apiService.getLeaderStatistics();
         if (isMounted) setStats(data as LeaderStatistics);
       } catch (e: any) {
-        if (isMounted) setStatsError(e?.message || 'Xatolik yuz berdi');
+        // Ignore 404 errors as the endpoint might not be available yet or changed
+        if (e.message && (e.message.includes('404') || e.message.includes('Not Found'))) {
+          console.warn('Leader statistics endpoint not found (404). Using local calculations.');
+          return;
+        }
+        if (isMounted) setStatsError(e?.message || 'Statistikalarni yuklashda xatolik yuz berdi');
       } finally {
         if (isMounted) setStatsLoading(false);
       }
@@ -68,7 +73,7 @@ const Dashboard: React.FC = () => {
       opacity: 1, 
       scale: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100
       }
     }

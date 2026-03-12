@@ -8,6 +8,9 @@ import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import { toast } from 'sonner';
 import { useApp } from '../context/AppContext';
+import { User } from '../types';
+
+import apiService from '../services/api';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Foydalanuvchi nomi talab qilinadi'),
@@ -15,12 +18,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-
-interface LoginResponse {
-  refresh: string;
-  access: string;
-  role: string;
-}
 
 const Login: React.FC = () => {
   const { dispatch } = useApp();
@@ -41,35 +38,43 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('https://joyborv1.pythonanywhere.com/api/token/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Kirishda xatolik yuz berdi');
-      }
-
-      const tokens: LoginResponse = await response.json();
+      const tokens = await apiService.login(data.username, data.password);
 
       // Store tokens in session storage
       sessionStorage.setItem('access_token', tokens.access);
       sessionStorage.setItem('refresh_token', tokens.refresh);
       sessionStorage.setItem('user_role', tokens.role);
 
-      // Create user object
-      const user = {
-        id: '1',
+      // Fetch user profile to get more details (like floor ID)
+      let userDetails: User = {
+        id: '1', // fallback
         name: data.username,
         lastName: '',
         role: tokens.role
       };
 
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user } });
+      try {
+        const profile = await apiService.getProfile();
+        
+        // Find if this user is a floor leader
+        const leaders = await apiService.getFloorLeaders();
+        const floorLeader = Array.isArray(leaders) 
+          ? leaders.find((l: any) => l.user_info.username === data.username || l.user === profile.user?.id)
+          : null;
+
+        userDetails = {
+          id: profile.user?.id?.toString() || profile.id?.toString() || '1',
+          name: profile.user?.username || data.username,
+          lastName: profile.user?.last_name || '',
+          role: tokens.role || profile.user?.role,
+          floor: floorLeader ? floorLeader.floor : profile.floor,
+          floorLeaderId: floorLeader ? floorLeader.id : undefined
+        };
+      } catch (profileErr) {
+        console.warn('Could not fetch user profile details:', profileErr);
+      }
+
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });
       toast.success('Muvaffaqiyatli kirdingiz!');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Kirishda xatolik yuz berdi';

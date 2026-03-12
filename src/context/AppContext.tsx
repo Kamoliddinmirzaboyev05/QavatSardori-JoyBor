@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request, User } from '../types';
 import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
+import apiService from '../services/api';
 
 type AppAction =
   | { type: 'LOGIN_SUCCESS'; payload: { tokens: any; user?: User } }
@@ -215,6 +216,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       dispatch({ type: 'LOAD_DATA', payload: { ...storedData, isAuthenticated } });
     }
   }, []);
+
+  // Fetch initial data from API when authenticated
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      const fetchStudents = async () => {
+        try {
+          const studentsData = await apiService.getStudents();
+          if (Array.isArray(studentsData)) {
+            // Map API response to Student type
+            const students: Student[] = studentsData.map((s: any) => ({
+              id: s.id?.toString() || generateId(),
+              name: s.first_name || s.name || '',
+              lastName: s.last_name || '',
+              room: s.room?.toString() || '',
+              phone: s.phone || '',
+              createdAt: s.created_at || new Date().toISOString(),
+              isDeleted: false
+            }));
+            
+            dispatch({ type: 'LOAD_DATA', payload: { students } });
+          }
+        } catch (error) {
+          console.error('Error fetching students:', error);
+        }
+      };
+      
+      fetchStudents();
+    }
+  }, [state.isAuthenticated]);
 
   // Save to storage on state changes
   useEffect(() => {

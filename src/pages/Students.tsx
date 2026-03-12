@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Edit, Trash2, Phone, MapPin } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -6,6 +6,8 @@ import SearchInput from '../components/common/SearchInput';
 import StudentForm from '../components/students/StudentForm';
 import { useApp } from '../context/AppContext';
 import { Student } from '../types';
+import apiService from '../services/api';
+import { toast } from 'sonner';
 
 const Students: React.FC = () => {
   const { state, dispatch } = useApp();
@@ -18,6 +20,7 @@ const Students: React.FC = () => {
       .filter(student => !student.isDeleted)
       .filter(student => 
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.lastName && student.lastName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         student.room.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.phone.includes(searchTerm)
       );
@@ -28,9 +31,16 @@ const Students: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (studentId: string) => {
+  const handleDelete = async (studentId: string) => {
     if (confirm('Haqiqatan ham bu talabani o\'chirmoqchimisiz?')) {
-      dispatch({ type: 'DELETE_STUDENT', payload: studentId });
+      try {
+        await apiService.deleteStudent(studentId);
+        dispatch({ type: 'DELETE_STUDENT', payload: studentId });
+        toast.success('Talaba o\'chirildi');
+      } catch (error) {
+        console.error('Error deleting student:', error);
+        toast.error('Talabani o\'chirishda xatolik yuz berdi');
+      }
     }
   };
 
@@ -64,7 +74,7 @@ const Students: React.FC = () => {
             <Card key={student.id} className="relative">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{student.name}</h3>
+                  <h3 className="font-semibold text-gray-900">{student.name} {student.lastName}</h3>
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
