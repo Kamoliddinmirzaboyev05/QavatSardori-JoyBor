@@ -53,6 +53,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Attendance Sessions - Full Create (session + records in one call)
+  async fullCreateAttendanceSession(data: { date: string; records: { student_id: number; status: 'in' | 'out' }[] }) {
+    const response = await fetch(`${API_BASE_URL}/attendance-sessions/full-create/`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    return this.handleResponse(response);
+  }
+
   // Attendance Sessions
   async createAttendanceSession(data?: { date: string; floor: number; leader: number }) {
     const response = await fetch(`${API_BASE_URL}/attendance-sessions/create/`, {
@@ -75,6 +86,16 @@ class ApiService {
 
   async getAttendanceSession(sessionId: string) {
     const response = await fetch(`${API_BASE_URL}/attendance-sessions/${sessionId}/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // Attendance Records - Get all records
+  async getAttendanceRecords() {
+    const response = await fetch(`${API_BASE_URL}/attendance-records/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -241,6 +262,15 @@ class ApiService {
   // Leader Statistics
   async getLeaderStatistics() {
     const response = await fetch(`${API_BASE_URL}/statistic-for-leader/`, {
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Dashboard Data
+  async getDashboardData() {
+    const response = await fetch(`${API_BASE_URL}/floor-leader/dashboard/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });

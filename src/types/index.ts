@@ -88,3 +88,43 @@ export interface LeaderStatistics {
   today_attendance: number;
   open_tasks?: number;
 }
+
+export interface DashboardData {
+  floor: {
+    id: number;
+    name: string;
+    gender: string;
+    dormitory: string;
+  };
+  students: {
+    total: number;
+    by_room: Array<{
+      room: string;
+      capacity: number;
+      occupied: number;
+      free: number;
+    }>;
+  };
+  attendance_today: {
+    has_session: boolean;
+    session_id: number | null;
+    present: number;
+    absent: number;
+    total: number;
+  };
+  attendance_last_7_days: Array<{
+    date: string;
+    present: number;
+    total: number;
+  }>;
+  collections: {
+    total: number;
+    paid_records: number;
+  };
+  tasks: {
+    total: number;
+    pending: number;
+    in_progress: number;
+    completed: number;
+  };
+}

@@ -13,6 +13,7 @@ import Collections from './pages/Collections';
 import CollectionDetails from './pages/CollectionDetails';
 import Communication from './pages/Communication';
 import Profile from './pages/Profile';
+import AttendanceNew from './pages/AttendanceNew';
 
 const AppRoutes: React.FC = () => {
   const { state } = useApp();
@@ -48,6 +49,11 @@ const AppRoutes: React.FC = () => {
           <Route path="/attendance/:id" element={
             <PageTransition>
               <AttendanceDetail />
+            </PageTransition>
+          } />
+          <Route path="/attendance/new" element={
+            <PageTransition>
+              <AttendanceNew />
             </PageTransition>
           } />
           <Route path="/collections" element={

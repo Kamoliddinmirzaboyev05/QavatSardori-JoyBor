@@ -4,54 +4,23 @@
     <meta charset="UTF-8" />
     
     <!-- Basic Meta Tags -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Yotoqxona qavati boshqaruvi uchun mobil ilova. Talabalar davomati, to'lovlar va so'rovlarni boshqaring." />
     <meta name="keywords" content="yotoqxona, qavat sardori, davomat, to'lov, talaba, boshqaruv" />
     <meta name="author" content="Qavat Sardori Team" />
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563eb" />
-    <meta name="background-color" content="#ffffff" />
-    <meta name="display" content="standalone" />
-    <meta name="orientation" content="portrait" />
+    <!-- Cache Control - Prevents Browser Caching Issues -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     
-    <!-- Apple PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Qavat Sardori" />
-    <link rel="apple-touch-icon" href="/logoicon.svg" />
-    
-    <!-- Microsoft PWA Meta Tags -->
-    <meta name="msapplication-TileColor" content="#2563eb" />
-    <meta name="msapplication-TileImage" content="/logoicon.svg" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
-    
-    <!-- Icons and Manifest -->
+    <!-- Icon -->
     <link rel="icon" type="image/svg+xml" href="/logoicon.svg" />
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Preload Critical Resources -->
-    <link rel="preload" href="/logoicon.svg" as="image" type="image/svg+xml" />
     
     <title>Qavat Sardori - Yotoqxona Boshqaruv Tizimi</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Service Worker Registration Only -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
   </body>
 </html>

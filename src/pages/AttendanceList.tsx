@@ -69,55 +69,9 @@ const AttendanceList: React.FC = () => {
     }
   };
 
-  // Create attendance session
-  const createAttendanceSession = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      let payload = undefined;
-
-      // Try to use info from state first (it should be populated after login)
-      if (state.user?.floor && state.user?.floorLeaderId) {
-        payload = {
-          date: getCurrentDate(),
-          floor: state.user.floor,
-          leader: state.user.floorLeaderId
-        };
-      } 
-      
-      // If payload is still undefined, try fetching floor leaders list
-      if (!payload) {
-        const leaders = await apiService.getFloorLeaders();
-        const currentLeader = Array.isArray(leaders) 
-          ? leaders.find((l: any) => l.user_info.username === state.user?.name || (state.user?.id && l.user === parseInt(state.user.id)))
-          : null;
-        
-        if (currentLeader) {
-          payload = {
-            date: getCurrentDate(),
-            floor: currentLeader.floor,
-            leader: currentLeader.id
-          };
-        } else {
-          console.warn('Current user is not found in floor leaders list. Sending empty payload or default values.');
-        }
-      }
-
-      const result = await apiService.createAttendanceSession(payload);
-      
-      // Navigate to the detail page for the new session
-      if (result && result.id) {
-        navigate(`/attendance/${result.id}`);
-      } else {
-        throw new Error('Sessiya yaratilmadi');
-      }
-    } catch (err: any) {
-      console.error('Error creating attendance session:', err);
-      setError(err.message || 'Yangi davomat sessiyasini yaratishda xatolik');
-    } finally {
-      setIsLoading(false);
-    }
+  // Create attendance session - navigate to new page
+  const createAttendanceSession = () => {
+    navigate('/attendance/new');
   };
 
   // Load attendance sessions on component mount
