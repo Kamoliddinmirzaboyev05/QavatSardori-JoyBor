@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, XCircle, DollarSign, Calendar, Users, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -177,8 +178,8 @@ const CollectionDetails: React.FC = () => {
     return (
       <div className="p-4">
         <div className="text-center py-12">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+          <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -187,163 +188,171 @@ const CollectionDetails: React.FC = () => {
   if (!collection) {
     return (
       <div className="p-4">
-        <Card className="text-center py-8">
-          <p className="text-gray-500">Yig'im topilmadi</p>
-          <Button onClick={() => navigate('/collections')} className="mt-4">Orqaga qaytish</Button>
+        <Card className="text-center py-12 border-dashed border-2 border-gray-100 bg-transparent shadow-none">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Yig'im topilmadi</p>
+          <Button 
+            onClick={() => navigate('/collections')} 
+            className="bg-gray-900 hover:bg-black text-white text-[10px] font-bold uppercase tracking-widest px-6 py-2"
+          >
+            Orqaga qaytish
+          </Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-4 pb-20">
+    <div className="p-4 space-y-6 pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col space-y-4">
         <div className="flex items-center space-x-3">
-          <Button
+          <button
             onClick={() => navigate('/collections')}
-            variant="secondary"
-            size="sm"
+            className="p-2 bg-gray-100 text-gray-700 rounded-[5px] hover:bg-gray-200 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-          </Button>
+          </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{collection.title}</h1>
-            {collection.description && <p className="text-sm text-gray-600">{collection.description}</p>}
+            <h1 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{collection.title}</h1>
+            {collection.description && (
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{collection.description}</p>
+            )}
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 bg-red-50 border border-red-100 rounded-[5px]">
+          <p className="text-[10px] font-bold text-red-600 uppercase text-center">{error}</p>
         </div>
       )}
 
       {/* Collection Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="text-center p-4">
-          <DollarSign className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-gray-900">{(collection.amount ?? 0).toLocaleString()} so'm</p>
-          <p className="text-sm text-gray-600">Miqdor</p>
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="text-center p-4 border border-gray-100 bg-white shadow-sm">
+          <p className="text-xl font-black text-gray-900">{(collection.amount ?? 0).toLocaleString()}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Miqdor (so'm)</p>
         </Card>
-        <Card className="text-center p-4">
-          <Calendar className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-          <p className="text-lg font-bold text-gray-900">{collection.deadline ? formatDate(collection.deadline) : '—'}</p>
-          <p className="text-sm text-gray-600">Muddat</p>
+        <Card className="text-center p-4 border border-gray-100 bg-white shadow-sm">
+          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
+            {collection.deadline ? formatDate(collection.deadline) : '—'}
+          </p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Muddat</p>
         </Card>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-emerald-50 rounded-lg p-4 text-center">
-          <CheckCircle className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-          <p className="text-xl font-bold text-emerald-600">{stats.paid}</p>
-          <p className="text-sm text-emerald-700">To'langan</p>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-gray-50 rounded-[5px] p-3 text-center border border-gray-100">
+          <p className="text-lg font-black text-gray-900">{stats.paid}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">To'langan</p>
         </div>
-        <div className="bg-red-50 rounded-lg p-4 text-center">
-          <XCircle className="w-6 h-6 text-red-600 mx-auto mb-2" />
-          <p className="text-xl font-bold text-red-600">{stats.unpaid}</p>
-          <p className="text-sm text-red-700">To'lanmagan</p>
+        <div className="bg-gray-50 rounded-[5px] p-3 text-center border border-gray-100">
+          <p className="text-lg font-black text-gray-900">{stats.unpaid}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Qoldi</p>
         </div>
-        <div className="bg-blue-50 rounded-lg p-4 text-center">
-          <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-          <p className="text-xl font-bold text-blue-600">{stats.total}</p>
-          <p className="text-sm text-blue-700">Jami</p>
+        <div className="bg-gray-50 rounded-[5px] p-3 text-center border border-gray-100">
+          <p className="text-lg font-black text-gray-900">{stats.total}</p>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Jami</p>
         </div>
       </div>
 
       {/* Rooms & Students */}
       <div className="space-y-4">
         {collection.rooms.map(room => (
-          <Card key={room.room_id} className="overflow-hidden">
-            <div
-              className="cursor-pointer p-4"
+          <div key={room.room_id} className="space-y-3">
+            <div 
+              className="flex items-center justify-between px-1"
               onClick={() => toggleRoom(room.room_id)}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">{room.room_name}</h3>
-                  <p className="text-sm text-gray-600">{room.students.length} ta talaba</p>
-                </div>
+              <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">{room.room_name}</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">{room.students.length} ta talaba</span>
                 {expandedRooms.has(room.room_id) ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                  <ChevronUp className="w-3 h-3 text-gray-400" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                  <ChevronDown className="w-3 h-3 text-gray-400" />
                 )}
               </div>
             </div>
 
             {expandedRooms.has(room.room_id) && (
-              <div className="px-4 pb-4">
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="space-y-3">
-                    {room.students.map(student => (
-                      <div key={student.id} className="bg-white rounded-lg p-4 shadow-sm">
-                        <div className="flex flex-col space-y-4">
-                          <div className="text-center">
-                            <p className="font-medium text-gray-900 text-lg">
-                              {student.student.name} {student.student.last_name}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Record ID: {student.id} • Student ID: {student.student.id}
-                            </p>
-                          </div>
-                          <div className="text-center mb-3">
-                            <p className="font-bold text-gray-900 text-lg">
-                              {(collection.amount ?? 0).toLocaleString()} so'm
-                            </p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePayment(student.id);
-                              }}
-                              className={clsx(
-                                "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
-                                normalizeStatus(student.status) === "To'lagan"
-                                  ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
-                              )}
-                            >
-                              <CheckCircle className="w-6 h-6 mx-auto mb-2" />
-                              To'langan
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePayment(student.id);
-                              }}
-                              className={clsx(
-                                "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
-                                normalizeStatus(student.status) === "To'lamagan"
-                                  ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
-                              )}
-                            >
-                              <XCircle className="w-6 h-6 mx-auto mb-2" />
-                              To'lanmagan
-                            </button>
-                          </div>
-                        </div>
+              <div className="space-y-3">
+                {room.students.map(student => (
+                  <Card key={student.id} className="p-4 border border-gray-100 bg-white shadow-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight truncate">
+                          {student.student.last_name} {student.student.name}
+                        </p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                          ID: #{student.id}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (normalizeStatus(student.status) !== "To'lagan") togglePayment(student.id);
+                          }}
+                          className={clsx(
+                            "w-10 h-10 rounded-[5px] flex items-center justify-center transition-all duration-200",
+                            normalizeStatus(student.status) === "To'lagan"
+                              ? "bg-gray-900 text-white shadow-sm"
+                              : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
+                          )}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (normalizeStatus(student.status) !== "To'lamagan") togglePayment(student.id);
+                          }}
+                          className={clsx(
+                            "w-10 h-10 rounded-[5px] flex items-center justify-center transition-all duration-200",
+                            normalizeStatus(student.status) === "To'lamagan"
+                              ? "bg-gray-400 text-white shadow-sm"
+                              : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
+                          )}
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
             )}
-          </Card>
+          </div>
         ))}
       </div>
 
       {/* Save Button */}
-      <div className="pt-2">
-        <Button onClick={savePayments} disabled={isSaving} variant="success" className="w-full py-3 text-base font-semibold">
-          <Save className="w-5 h-5 mr-2" />
-          {isSaving ? 'Saqlanmoqda...' : 'To\'lovlarni Saqlash'}
+      <motion.div 
+        className="fixed bottom-20 left-4 right-4 z-30"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+      >
+        <Button 
+          onClick={savePayments} 
+          disabled={isSaving} 
+          className="w-full bg-gray-900 hover:bg-black text-white py-4 rounded-[5px] shadow-xl uppercase tracking-widest font-black text-xs"
+        >
+          {isSaving ? (
+            <div className="flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Saqlanmoqda...
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Save className="w-4 h-4 mr-2" />
+              O'zgarishlarni saqlash
+            </div>
+          )}
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 };

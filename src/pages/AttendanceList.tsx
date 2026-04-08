@@ -8,62 +8,80 @@ import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
 import { useApp } from '../context/AppContext';
 
-interface Student {
+interface AttendanceRecord {
   id: number;
-  student: {
-    id: number;
-    name: string;
-    last_name: string;
-  };
+  session: number;
+  session_date: string;
+  floor_name: string;
+  student: number;
+  student_name: string;
+  student_last_name: string;
   status: string;
+  created_at: string;
 }
 
-interface Room {
-  room_id: number;
-  room_name: string;
-  students: Student[];
-}
-
-interface AttendanceSession {
+interface GroupedSession {
   id: number;
   date: string;
-  floor: {
-    id: number;
-    name: string;
-  };
-  leader: {
-    id: number;
-    floor: string;
-    user: string;
-  };
-  rooms: Room[];
+  floorName: string;
+  present: number;
+  absent: number;
+  total: number;
+  records: AttendanceRecord[];
 }
 
 const AttendanceList: React.FC = () => {
   const navigate = useNavigate();
   const { state } = useApp();
-  const [attendanceSessions, setAttendanceSessions] = useState<AttendanceSession[]>([]);
+  const [groupedSessions, setGroupedSessions] = useState<GroupedSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch attendance sessions
-  const fetchAttendanceSessions = async () => {
+  // Fetch attendance records and group them
+  const fetchAttendanceData = async () => {
     setIsLoading(true);
     try {
-      const result = await apiService.getAttendanceSessions();
-      const sessions = Array.isArray(result) ? result : [];
+      const result = await apiService.getAttendanceRecords();
+      const records: AttendanceRecord[] = result.results || (Array.isArray(result) ? result : []);
 
-      // Sort by date (most recent first)
-      const sortedSessions = sessions.sort((a: AttendanceSession, b: AttendanceSession) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
+      // Group by session ID
+      const sessionsMap: Record<number, GroupedSession> = {};
+      
+      records.forEach(record => {
+        const sessionId = record.session;
+        if (!sessionsMap[sessionId]) {
+          sessionsMap[sessionId] = {
+            id: sessionId,
+            date: record.session_date,
+            floorName: record.floor_name || 'Noma\'lum qavat',
+            present: 0,
+            absent: 0,
+            total: 0,
+            records: []
+          };
+        }
+        
+        sessionsMap[sessionId].records.push(record);
+        sessionsMap[sessionId].total++;
+        
+        if (record.status.toLowerCase() === 'in' || record.status === 'Hozir' || record.status === 'Bor') {
+          sessionsMap[sessionId].present++;
+        } else if (record.status.toLowerCase() === 'out' || record.status === 'Yo\'q') {
+          sessionsMap[sessionId].absent++;
+        }
+      });
+
+      // Convert to array and sort by date (most recent first)
+      const sessions = Object.values(sessionsMap).sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id
       );
 
-      setAttendanceSessions(sortedSessions);
+      setGroupedSessions(sessions);
 
     } catch (err: any) {
-      console.error('Error fetching attendance sessions:', err);
-      setAttendanceSessions([]);
-      setError(err.message || 'Davomat sessiyalarini yuklashda xatolik yuz berdi');
+      console.error('Error fetching attendance data:', err);
+      setGroupedSessions([]);
+      setError(err.message || 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
     }
@@ -76,27 +94,8 @@ const AttendanceList: React.FC = () => {
 
   // Load attendance sessions on component mount
   useEffect(() => {
-    fetchAttendanceSessions();
+    fetchAttendanceData();
   }, []);
-
-  // Get status statistics for session (updated for 2 statuses only)
-  const getSessionStats = (session: AttendanceSession) => {
-    let present = 0, absent = 0;
-
-    session.rooms.forEach(room => {
-      room.students.forEach(student => {
-        if (student.status === 'Hozir' || student.status === 'in') {
-          present++;
-        } else if (student.status === 'Yo\'q' || student.status === 'out') {
-          absent++;
-        }
-        // Remove 'Kech' status completely
-      });
-    });
-
-    const total = session.rooms.reduce((sum, room) => sum + room.students.length, 0);
-    return { present, absent, total };
-  };
 
   // Format date for display
   const formatDisplayDate = (dateString: string) => {
@@ -119,14 +118,27 @@ const AttendanceList: React.FC = () => {
     }
   };
 
-  const handleSessionClick = (session: AttendanceSession) => {
-    console.log('Session clicked:', session.id);
-    navigate(`/attendance/${session.id}`);
+  const handleSessionClick = (sessionId: number) => {
+    console.log('Session clicked:', sessionId);
+    navigate(`/attendance/${sessionId}`);
   };
 
   const handleCreateNew = () => {
     navigate('/attendance/new');
   };
+
+  // Group sessions by date for visual separation
+  const sessionsByDate = groupedSessions.reduce((acc, session) => {
+    if (!acc[session.date]) {
+      acc[session.date] = [];
+    }
+    acc[session.date].push(session);
+    return acc;
+  }, {} as Record<string, GroupedSession[]>);
+
+  const sortedDates = Object.keys(sessionsByDate).sort((a, b) => 
+    new Date(b).getTime() - new Date(a).getTime()
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -156,8 +168,8 @@ const AttendanceList: React.FC = () => {
         variants={itemVariants}
       >
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Davomat Tarixi</h2>
-          <p className="text-sm text-gray-600">Olingan davomatlar ro'yxati</p>
+          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Davomat Tarixi</h2>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Olingan davomatlar ro'yxati</p>
         </div>
         <motion.div
           whileHover={{ scale: 1.02 }}
@@ -166,17 +178,17 @@ const AttendanceList: React.FC = () => {
           <Button
             onClick={createAttendanceSession}
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-gray-900 hover:bg-black text-white py-3 rounded-[5px] uppercase tracking-widest font-bold text-[11px]"
           >
-            <Calendar className="w-4 h-4 mr-2" />
-            {isLoading ? 'Yaratilmoqda...' : 'Davomat Olish'}
+            <Calendar className="w-3.5 h-3.5 mr-2" />
+            {isLoading ? 'Yuklanmoqda...' : 'Yangi Davomat Olish'}
           </Button>
         </motion.div>
       </motion.div>
 
       {error && (
         <motion.div
-          className="p-3 bg-red-50 border border-red-200 rounded-lg"
+          className="p-3 bg-red-50 border border-red-200 rounded-[5px]"
           variants={itemVariants}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -196,80 +208,85 @@ const AttendanceList: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Attendance Sessions List */}
+      {/* Attendance Sessions List Grouped by Date */}
       {!isLoading && (
         <motion.div
-          className="space-y-3"
+          className="space-y-6"
           variants={containerVariants}
         >
-          {attendanceSessions.length > 0 ? (
-            attendanceSessions.map((session) => {
-              const stats = getSessionStats(session);
-              const displayDate = formatDisplayDate(session.date);
-
-              return (
-                <motion.div
-                  key={session.id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <Card
-                    className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => handleSessionClick(session)}
+          {sortedDates.length > 0 ? (
+            sortedDates.map((date) => (
+              <div key={date} className="space-y-3">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1 mb-2 flex items-center">
+                  <span className="bg-gray-200 h-px flex-1 mr-3"></span>
+                  {formatDisplayDate(date)}
+                  <span className="bg-gray-200 h-px flex-1 ml-3"></span>
+                </h3>
+                
+                {sessionsByDate[date].map((session) => (
+                  <motion.div
+                    key={session.id}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.01, y: -2 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Calendar className="w-5 h-5 text-blue-600" />
-                            <h3 className="font-semibold text-gray-900 text-lg">
-                              {displayDate}
-                            </h3>
+                    <Card
+                      className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => handleSessionClick(session.id)}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Calendar className="w-4 h-4 text-gray-700" />
+                              <h3 className="font-bold text-gray-900 uppercase tracking-tight">
+                                {session.floorName}
+                              </h3>
+                            </div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                              {formatDate(session.date)} • ID: #{session.id}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-600">
-                            {session.floor.name} • {formatDate(session.date)}
+                          <div className="flex items-center space-x-2">
+                            <div className="text-right">
+                              <p className="text-xl font-black text-gray-900 leading-none">
+                                {session.present}/{session.total}
+                              </p>
+                              <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase">
+                                {session.total > 0 ? Math.round((session.present / session.total) * 100) : 0}%
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-300" />
+                          </div>
+                        </div>
+
+                        {/* Statistics */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
+                            <p className="text-lg font-bold text-gray-900">{session.present}</p>
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Bor</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
+                            <p className="text-lg font-bold text-gray-900">{session.absent}</p>
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Yo'q</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center">
+                          <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                            Yaratilgan: {new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                            {session.total} ta talaba
                           </p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right">
-                            <p className="text-xl font-bold text-gray-900">
-                              {stats.present}/{stats.total}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0}%
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        </div>
                       </div>
-
-                      {/* Statistics - Updated for 2 statuses only */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                          <CheckCircle className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-                          <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-                          <p className="text-xs text-emerald-700">Bor</p>
-                        </div>
-                        <div className="bg-red-50 rounded-lg p-3 text-center">
-                          <XCircle className="w-5 h-5 text-red-600 mx-auto mb-1" />
-                          <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-                          <p className="text-xs text-red-700">Yo'q</p>
-                        </div>
-                      </div>
-
-                      {/* Quick room summary */}
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs text-gray-500 text-center">
-                          {session.rooms.length} ta xona • {session.rooms.reduce((sum, room) => sum + room.students.length, 0)} ta talaba
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ))
           ) : (
             <motion.div variants={itemVariants}>
               <Card className="text-center py-12">

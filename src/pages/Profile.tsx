@@ -238,14 +238,14 @@ const Profile: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-[5px] p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <Phone className="w-4 h-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-700">Telefon</span>
                 </div>
                 <p className="text-gray-900">{formData.phone}</p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-[5px] p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <Mail className="w-4 h-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-700">Email</span>
@@ -276,7 +276,7 @@ const Profile: React.FC = () => {
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     placeholder="Ismingizni kiriting"
                   />
@@ -293,7 +293,7 @@ const Profile: React.FC = () => {
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     placeholder="Familiyangizni kiriting"
                   />
@@ -312,7 +312,7 @@ const Profile: React.FC = () => {
                     type="text"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Telefon raqamingizni kiriting"
                   />
                 </div>
@@ -325,7 +325,7 @@ const Profile: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Email manzilingizni kiriting"
                   />
                 </div>
@@ -379,7 +379,7 @@ const Profile: React.FC = () => {
             exit={{ opacity: 0 }}
           />
           <motion.div
-            className="relative bg-white rounded-lg shadow-xl w-full max-w-md"
+            className="relative bg-white rounded-[5px] shadow-xl w-full max-w-md"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -422,7 +422,7 @@ const Profile: React.FC = () => {
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordData.currentPassword}
                       onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'
                         }`}
                       placeholder="Joriy parolingizni kiriting"
                     />
@@ -448,7 +448,7 @@ const Profile: React.FC = () => {
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordData.newPassword}
                       onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'
                         }`}
                       placeholder="Yangi parolni kiriting"
                     />
@@ -474,7 +474,7 @@ const Profile: React.FC = () => {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordData.confirmPassword}
                       onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                         }`}
                       placeholder="Yangi parolni qayta kiriting"
                     />

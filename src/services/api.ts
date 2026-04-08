@@ -23,21 +23,35 @@ class ApiService {
       // Try to get error details from response
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
-        const errorData = await response.json();
-        if (errorData.detail) {
-          errorMessage = errorData.detail;
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
-        } else if (errorData.error) {
-          errorMessage = errorData.error;
+        const text = await response.text();
+        if (text) {
+          try {
+            const errorData = JSON.parse(text);
+            if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+            errorMessage = text;
+          }
         }
       } catch (e) {
-        // If we can't parse the error response, use the default message
+        // If we can't read the error response, use the default message
       }
       
       throw new Error(errorMessage);
     }
-    return response.json();
+    
+    try {
+      const text = await response.text();
+      return text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.error('Error parsing JSON response:', e);
+      return {};
+    }
   }
 
   // Authentication

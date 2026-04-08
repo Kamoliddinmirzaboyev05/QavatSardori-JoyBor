@@ -85,7 +85,7 @@ const Requests: React.FC = () => {
               key={status}
               onClick={() => setSelectedStatus(status)}
               className={clsx(
-                "flex flex-col items-center p-3 rounded-lg transition-colors",
+                "flex flex-col items-center p-3 rounded-[5px] transition-colors",
                 selectedStatus === status
                   ? "bg-blue-100 text-blue-700 border-2 border-blue-300"
                   : "bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100"

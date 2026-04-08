@@ -111,11 +111,11 @@ const Communication: React.FC = () => {
       </motion.div>
 
       {/* Tab Navigation */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
+      <div className="flex bg-gray-100 rounded-[5px] p-1">
         <button
           onClick={() => setActiveTab('requests')}
           className={clsx(
-            "flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors",
+            "flex-1 flex items-center justify-center py-2 px-4 rounded-[5px] text-sm font-medium transition-colors",
             activeTab === 'requests'
               ? "bg-white text-blue-700 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
@@ -127,7 +127,7 @@ const Communication: React.FC = () => {
         <button
           onClick={() => setActiveTab('announcements')}
           className={clsx(
-            "flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors",
+            "flex-1 flex items-center justify-center py-2 px-4 rounded-[5px] text-sm font-medium transition-colors",
             activeTab === 'announcements'
               ? "bg-white text-blue-700 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
@@ -156,7 +156,7 @@ const Communication: React.FC = () => {
                   key={status}
                   onClick={() => setSelectedStatus(status)}
                   className={clsx(
-                    "flex flex-col items-center p-3 rounded-lg transition-colors",
+                    "flex flex-col items-center p-3 rounded-[5px] transition-colors",
                     selectedStatus === status
                       ? "bg-blue-100 text-blue-700 border-2 border-blue-300"
                       : "bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100"

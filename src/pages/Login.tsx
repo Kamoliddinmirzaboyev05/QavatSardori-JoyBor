@@ -71,7 +71,25 @@ const Login: React.FC = () => {
           floorLeaderId: floorLeader ? floorLeader.id : undefined
         };
       } catch (profileErr) {
-        console.warn('Could not fetch user profile details:', profileErr);
+        console.warn('Could not fetch user profile details, attempting floor leaders fallback:', profileErr);
+        try {
+          const leaders = await apiService.getFloorLeaders();
+          const floorLeader = Array.isArray(leaders) 
+            ? leaders.find((l: any) => l.user_info.username === data.username)
+            : null;
+          
+          if (floorLeader) {
+            userDetails = {
+              ...userDetails,
+              id: floorLeader.user?.toString() || '1',
+              name: floorLeader.user_info?.username || data.username,
+              floor: floorLeader.floor,
+              floorLeaderId: floorLeader.id
+            };
+          }
+        } catch (leaderErr) {
+          console.warn('Could not fetch floor leaders either:', leaderErr);
+        }
       }
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });
@@ -124,7 +142,7 @@ const Login: React.FC = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4"
+      className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -133,20 +151,20 @@ const Login: React.FC = () => {
         className="w-full max-w-md"
         variants={cardVariants}
       >
-        <Card className="p-8 shadow-2xl">
+        <Card className="p-8 shadow-sm border border-gray-200 bg-white">
           <motion.div
-            className="text-center mb-8"
+            className="text-center mb-10"
             variants={itemVariants}
           >
             <motion.div
-              className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              whileHover={{ scale: 1.1 }}
+              className="bg-gray-900 w-16 h-16 rounded-[5px] flex items-center justify-center mx-auto mb-6"
+              whileHover={{ scale: 1.05 }}
               transition={{ type: "spring" as const, stiffness: 400 }}
             >
-              <LogIn className="w-8 h-8 text-blue-600" />
+              <LogIn className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Qavat sardori</h1>
-            <p className="text-gray-600">Tizimga kirish</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 uppercase tracking-tight">Qavat sardori</h1>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tizimga kirish</p>
           </motion.div>
 
           <motion.form
@@ -155,19 +173,19 @@ const Login: React.FC = () => {
             variants={itemVariants}
           >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Foydalanuvchi nomi
               </label>
               <input
                 {...register('username')}
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                placeholder="Foydalanuvchi nomingizni kiriting"
+                className="w-full px-4 py-3 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-sm"
+                placeholder="Foydalanuvchi nomi"
               />
               {errors.username && (
                 <motion.p
-                  className="text-red-500 text-sm mt-1"
-                  initial={{ opacity: 0, y: -10 }}
+                  className="text-red-600 text-[10px] font-bold uppercase mt-1"
+                  initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {errors.username.message}
@@ -176,28 +194,28 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Parol
               </label>
               <div className="relative">
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Parolingizni kiriting"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-sm"
+                  placeholder="Parol"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && (
                 <motion.p
-                  className="text-red-500 text-sm mt-1"
-                  initial={{ opacity: 0, y: -10 }}
+                  className="text-red-600 text-[10px] font-bold uppercase mt-1"
+                  initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {errors.password.message}
@@ -207,36 +225,21 @@ const Login: React.FC = () => {
 
             {error && (
               <motion.div
-                className="p-3 bg-red-50 border border-red-200 rounded-lg"
-                initial={{ opacity: 0, scale: 0.9 }}
+                className="p-3 bg-red-50 border border-red-100 rounded-[5px]"
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-[10px] font-bold text-red-600 uppercase text-center">{error}</p>
               </motion.div>
             )}
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <Button
+              type="submit"
+              className="w-full py-3 bg-gray-900 hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-[5px] transition-all"
+              isLoading={isLoading}
             >
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Kirilmoqda...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Kirish
-                  </div>
-                )}
-              </Button>
-            </motion.div>
+              Kirish
+            </Button>
           </motion.form>
         </Card>
       </motion.div>

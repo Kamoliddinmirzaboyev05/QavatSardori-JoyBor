@@ -26,7 +26,7 @@ const Card: React.FC<CardProps> = ({
     <div
       onClick={onClick}
       className={clsx(
-        "bg-white rounded-lg border border-gray-200 shadow-sm",
+        "bg-white rounded-[5px] border border-gray-200 shadow-sm",
         paddingClasses[padding],
         (hover || onClick) && "hover:shadow-md transition-shadow cursor-pointer",
         className

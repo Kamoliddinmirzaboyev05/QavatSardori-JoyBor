@@ -36,13 +36,11 @@ const Header: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
           >
-            <img
-              src="/logoicon.svg"
-              alt="Qavat Sardori Logo"
-              className="w-8 h-8"
-            />
+            <div className="w-8 h-8 bg-gray-900 rounded-[5px] flex items-center justify-center">
+              <span className="text-white text-xs font-black">QS</span>
+            </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Qavat Sardori</h1>
+              <h1 className="text-sm font-black text-gray-900 uppercase tracking-tighter">Qavat Sardori</h1>
             </div>
           </motion.div>
 
@@ -57,12 +55,12 @@ const Header: React.FC = () => {
             <div className="relative">
               <motion.button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-2 p-2 rounded-[5px] hover:bg-gray-100 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
+                <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="text-white text-xs font-bold uppercase">
                     {state.user?.name?.charAt(0) || 'S'}
                   </span>
                 </div>
@@ -70,14 +68,14 @@ const Header: React.FC = () => {
                   animate={{ rotate: showUserMenu ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
                 </motion.div>
               </motion.button>
 
               <AnimatePresence>
                 {showUserMenu && (
                   <motion.div 
-                    className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                    className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-[5px] shadow-lg z-50"
                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}

@@ -103,23 +103,23 @@ const Dashboard: React.FC = () => {
       animate="visible"
     >
       {/* Floor Info Header */}
-      <motion.div variants={itemVariants} className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg">
+      <motion.div variants={itemVariants} className="bg-gray-900 rounded-[5px] p-6 text-white shadow-sm">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold">{floor.name}</h1>
-            <div className="flex flex-wrap gap-4 mt-3 opacity-90">
-              <div className="flex items-center text-sm">
-                <Building2 className="w-4 h-4 mr-1.5" />
+            <h1 className="text-3xl font-bold uppercase tracking-tight">{floor.name}</h1>
+            <div className="flex flex-wrap gap-4 mt-3 opacity-80">
+              <div className="flex items-center text-xs font-medium uppercase tracking-wider">
+                <Building2 className="w-3.5 h-3.5 mr-1.5" />
                 {floor.dormitory}
               </div>
-              <div className="flex items-center text-sm">
-                <User className="w-4 h-4 mr-1.5" />
+              <div className="flex items-center text-xs font-medium uppercase tracking-wider">
+                <User className="w-3.5 h-3.5 mr-1.5" />
                 {floor.gender === 'male' ? 'O\'g\'il bolalar' : 'Qiz bolalar'}
               </div>
             </div>
           </div>
-          <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
-            <Home className="w-8 h-8" />
+          <div className="bg-white/10 p-2.5 rounded-[5px]">
+            <Home className="w-6 h-6" />
           </div>
         </div>
       </motion.div>
@@ -130,57 +130,53 @@ const Dashboard: React.FC = () => {
         variants={containerVariants}
       >
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border-none bg-blue-50/50 shadow-sm hover:shadow-md transition-shadow h-full">
+          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-blue-100 p-2.5 rounded-xl self-start mb-3">
-                <Users className="w-5 h-5 text-blue-600" />
+              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
+                <Users className="w-5 h-5 text-gray-700" />
               </div>
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Talabalar</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Talabalar</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{students.total}</p>
-              <p className="text-[10px] text-gray-500 mt-auto pt-2">Jami faol talabalar</p>
             </div>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border-none bg-green-50/50 shadow-sm hover:shadow-md transition-shadow h-full">
+          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-green-100 p-2.5 rounded-xl self-start mb-3">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
+                <CheckCircle className="w-5 h-5 text-gray-700" />
               </div>
-              <p className="text-xs font-semibold text-green-600 uppercase tracking-wider">Davomat</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Davomat</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
                 {attendance_today.present}/{attendance_today.total}
               </p>
-              <p className="text-[10px] text-gray-500 mt-auto pt-2">Bugungi ishtirok</p>
             </div>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border-none bg-yellow-50/50 shadow-sm hover:shadow-md transition-shadow h-full">
+          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-yellow-100 p-2.5 rounded-xl self-start mb-3">
-                <DollarSign className="w-5 h-5 text-yellow-600" />
+              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
+                <DollarSign className="w-5 h-5 text-gray-700" />
               </div>
-              <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wider">Yig'imlar</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Yig'imlar</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
                 {collections.paid_records}/{collections.total}
               </p>
-              <p className="text-[10px] text-gray-500 mt-auto pt-2">To'langan yozuvlar</p>
             </div>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border-none bg-purple-50/50 shadow-sm hover:shadow-md transition-shadow h-full">
+          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-purple-100 p-2.5 rounded-xl self-start mb-3">
-                <ClipboardList className="w-5 h-5 text-purple-600" />
+              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
+                <ClipboardList className="w-5 h-5 text-gray-700" />
               </div>
-              <p className="text-xs font-semibold text-purple-600 uppercase tracking-wider">Vazifalar</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Vazifalar</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{tasks.pending}</p>
-              <p className="text-[10px] text-gray-500 mt-auto pt-2">Bajarilishi kutilayotgan</p>
             </div>
           </Card>
         </motion.div>
@@ -188,46 +184,38 @@ const Dashboard: React.FC = () => {
 
       {/* Attendance Today Section */}
       <motion.div variants={itemVariants}>
-        <Card className="p-5 border-none shadow-sm overflow-hidden relative">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-blue-600" />
-              Bugungi davomat holati
+        <Card className="p-5 border border-gray-100 shadow-sm relative">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center">
+              <Clock className="w-4 h-4 mr-2 text-gray-700" />
+              Bugungi davomat
             </h3>
-            <span className="text-xs text-gray-500 font-medium">{getCurrentDate()}</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{getCurrentDate()}</span>
           </div>
           
           {!attendance_today.has_session ? (
-            <div className="bg-blue-50 rounded-2xl p-4 flex items-center justify-between border border-blue-100">
-              <div className="flex items-center">
-                <div className="bg-blue-600/10 p-2 rounded-lg mr-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-blue-900">Bugun davomat qilinmadi</p>
-                  <p className="text-xs text-blue-700">Davomatni hozir boshlang</p>
-                </div>
-              </div>
+            <div className="text-center py-6">
+              <p className="text-sm text-gray-500 mb-4">Bugun hali davomat olinmagan</p>
               <Link 
-                to="/attendance" 
-                className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                to="/attendance/new"
+                className="inline-flex items-center px-6 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-[5px] hover:bg-black transition-colors"
               >
-                Boshlash
+                Davomatni boshlash
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-green-50 p-3 rounded-2xl text-center">
-                <p className="text-xs text-green-600 font-bold uppercase mb-1">Bor</p>
-                <p className="text-xl font-bold text-green-700">{attendance_today.present}</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
+                <p className="text-2xl font-bold text-gray-900">{attendance_today.present}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Bor</p>
               </div>
-              <div className="bg-red-50 p-3 rounded-2xl text-center">
-                <p className="text-xs text-red-600 font-bold uppercase mb-1">Yo'q</p>
-                <p className="text-xl font-bold text-red-700">{attendance_today.absent}</p>
+              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
+                <p className="text-2xl font-bold text-gray-900">{attendance_today.absent}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Yo'q</p>
               </div>
-              <div className="bg-gray-50 p-3 rounded-2xl text-center">
-                <p className="text-xs text-gray-600 font-bold uppercase mb-1">Jami</p>
-                <p className="text-xl font-bold text-gray-700">{attendance_today.total}</p>
+              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
+                <p className="text-2xl font-bold text-gray-900">{attendance_today.total}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Jami</p>
               </div>
             </div>
           )}

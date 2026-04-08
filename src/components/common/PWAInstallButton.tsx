@@ -60,7 +60,7 @@ const PWAInstallButton: React.FC = () => {
   return (
     <button
       onClick={handleInstallClick}
-      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-[5px] transition-colors"
       title="Ilovani o'rnatish"
     >
       <Download className="w-5 h-5" />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Users, Save, ArrowLeft, Search } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Save, ArrowLeft, Search, User } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { clsx } from 'clsx';
@@ -234,7 +234,7 @@ const AttendanceNew: React.FC = () => {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </Card>
       </motion.div>
@@ -248,7 +248,7 @@ const AttendanceNew: React.FC = () => {
             placeholder="Talaba, xona yoki guruh bo'yicha qidirish..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </motion.div>
@@ -259,39 +259,39 @@ const AttendanceNew: React.FC = () => {
           variant="secondary"
           size="sm"
           onClick={() => markAll('in')}
-          className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+          className="flex-1 bg-gray-900 text-white hover:bg-black text-[10px] font-bold uppercase tracking-widest py-3"
         >
-          <CheckCircle className="w-4 h-4 mr-1" />
+          <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
           Barchasi bor
         </Button>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => markAll('out')}
-          className="flex-1 bg-red-50 hover:bg-red-100 text-red-700"
+          className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 text-[10px] font-bold uppercase tracking-widest py-3"
         >
-          <XCircle className="w-4 h-4 mr-1" />
+          <XCircle className="w-3.5 h-3.5 mr-1.5" />
           Barchasi yo'q
         </Button>
       </motion.div>
 
       {/* Statistics */}
       <motion.div variants={itemVariants}>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-emerald-50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-emerald-600">{stats.present}</p>
-            <p className="text-xs text-emerald-700">Bor</p>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
+            <p className="text-lg font-black text-gray-900">{stats.present}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Bor</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-red-600">{stats.absent}</p>
-            <p className="text-xs text-red-700">Yo'q</p>
+          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
+            <p className="text-lg font-black text-gray-900">{stats.absent}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Yo'q</p>
           </div>
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-xl font-bold text-gray-600">{stats.unmarked}</p>
-            <p className="text-xs text-gray-700">Belgisiz</p>
+          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
+            <p className="text-lg font-black text-gray-900">{stats.unmarked}</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Qoldi</p>
           </div>
         </div>
-        <p className="text-center text-sm text-gray-500 mt-2">
+        <p className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">
           Jami: {stats.total} ta talaba
         </p>
       </motion.div>
@@ -317,34 +317,34 @@ const AttendanceNew: React.FC = () => {
                         <img
                           src={student.picture}
                           alt={`${student.name} ${student.last_name}`}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-blue-600" />
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                          <User className="w-5 h-5 text-gray-400" />
                         </div>
                       )}
                     </div>
 
                     {/* Student Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
-                        {student.last_name} {student.name} {student.middle_name || ''}
+                      <p className="text-sm font-bold text-gray-900 truncate uppercase tracking-tight">
+                        {student.last_name} {student.name}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {student.room_name || 'Xona belgilanmagan'} • {student.group || ''}
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        {student.room_name || 'Xona'} • {student.group || ''}
                       </p>
                     </div>
 
                     {/* Status Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <button
                         onClick={() => toggleStudentStatus(student.id, 'in')}
                         className={clsx(
-                          "p-2 rounded-lg transition-all duration-200",
+                          "w-10 h-10 rounded-[5px] flex items-center justify-center transition-all duration-200",
                           status === 'in'
-                            ? "bg-emerald-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600"
+                            ? "bg-gray-900 text-white shadow-sm"
+                            : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
                         )}
                       >
                         <CheckCircle className="w-5 h-5" />
@@ -352,10 +352,10 @@ const AttendanceNew: React.FC = () => {
                       <button
                         onClick={() => toggleStudentStatus(student.id, 'out')}
                         className={clsx(
-                          "p-2 rounded-lg transition-all duration-200",
+                          "w-10 h-10 rounded-[5px] flex items-center justify-center transition-all duration-200",
                           status === 'out'
-                            ? "bg-red-500 text-white shadow-md"
-                            : "bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                            ? "bg-gray-400 text-white shadow-sm"
+                            : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
                         )}
                       >
                         <XCircle className="w-5 h-5" />
@@ -376,18 +376,30 @@ const AttendanceNew: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Save Button - Fixed at bottom with high z-index */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 z-50">
+      {/* Save Button */}
+      <motion.div
+        className="fixed bottom-20 left-4 right-4 z-30"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+      >
         <Button
           onClick={saveAttendance}
           disabled={isSaving || stats.total === 0}
-          variant="success"
-          className="w-full py-3 text-base font-semibold bg-emerald-600 hover:bg-emerald-700"
+          className="w-full bg-gray-900 hover:bg-black text-white py-4 rounded-[5px] shadow-xl uppercase tracking-widest font-black text-xs"
         >
-          <Save className="w-5 h-5 mr-2" />
-          {isSaving ? 'Saqlanmoqda...' : `Davomatni Saqlash (${stats.present + stats.absent}/${stats.total})`}
+          {isSaving ? (
+            <div className="flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Saqlanmoqda...
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Save className="w-4 h-4 mr-2" />
+              Davomatni yakunlash
+            </div>
+          )}
         </Button>
-      </div>
+      </motion.div>
       
       {/* Spacer for fixed button */}
       <div className="h-24"></div>

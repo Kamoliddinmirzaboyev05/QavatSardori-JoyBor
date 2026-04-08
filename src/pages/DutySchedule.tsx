@@ -222,7 +222,7 @@ const DutySchedule: React.FC = () => {
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((duty) => {
                   return (
-                    <div key={duty.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={duty.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-[5px]">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(duty.status)}
                         <div>
@@ -257,7 +257,7 @@ const DutySchedule: React.FC = () => {
       {/* Assign Duty Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4">
+          <div className="bg-white rounded-[5px] w-full max-w-md mx-4">
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Navbatchi xona tayinlash</h3>
               <p className="text-sm text-gray-600 mt-1">Bugun uchun navbatchi xonani tanlang</p>
@@ -269,7 +269,7 @@ const DutySchedule: React.FC = () => {
                   <label
                     key={room}
                     className={clsx(
-                      "flex items-center p-3 border rounded-lg cursor-pointer transition-colors",
+                      "flex items-center p-3 border rounded-[5px] cursor-pointer transition-colors",
                       selectedRoom === room
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:bg-gray-50"

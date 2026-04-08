@@ -90,33 +90,37 @@ const AttendanceDetail: React.FC = () => {
       // Prepare records array for API according to the Swagger documentation
       const records: any[] = [];
 
-      attendanceSession.rooms.forEach(room => {
-        room.students.forEach(student => {
-          let apiStatus = '';
-          if (
-            student.status === 'Hozir' ||
-            student.status === 'Bor' ||
-            student.status === 'In' ||
-            student.status === 'in'
-          ) {
-            apiStatus = 'in';
-          } else if (
-            student.status === "Yo'q" ||
-            student.status === 'Out' ||
-            student.status === 'out'
-          ) {
-            apiStatus = 'out';
-          }
+      if (attendanceSession.rooms && Array.isArray(attendanceSession.rooms)) {
+        attendanceSession.rooms.forEach(room => {
+          if (room.students && Array.isArray(room.students)) {
+            room.students.forEach(student => {
+              let apiStatus = '';
+              if (
+                student.status === 'Hozir' ||
+                student.status === 'Bor' ||
+                student.status === 'In' ||
+                student.status === 'in'
+              ) {
+                apiStatus = 'in';
+              } else if (
+                student.status === "Yo'q" ||
+                student.status === 'Out' ||
+                student.status === 'out'
+              ) {
+                apiStatus = 'out';
+              }
 
-          if (apiStatus) {
-            records.push({
-              id: student.id,
-              student_id: student.student.id,
-              status: apiStatus
+              if (apiStatus) {
+                records.push({
+                  id: student.id,
+                  student_id: student.student.id,
+                  status: apiStatus
+                });
+              }
             });
           }
         });
-      });
+      }
 
       // console.debug('Sending attendance data to API:', { records });
       // console.debug('API endpoint:', `/attendance-records/${attendanceSession.id}/bulk-update/`);
@@ -169,13 +173,84 @@ const AttendanceDetail: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const result = await apiService.getAttendanceSession(id);
-      // console.debug('Fetched attendance session:', result);
-      setAttendanceSession(result);
+      let result = await apiService.getAttendanceSession(id);
+      console.log('Fetched attendance session:', result);
+      
+      // If result is an array (list of records), we need to group them
+      if (Array.isArray(result) || (result && !result.rooms && result.results)) {
+        const records = result.results || result;
+        if (Array.isArray(records) && records.length > 0) {
+          // Construct a session-like object from records
+          const firstRecord = records[0];
+          result = {
+            id: firstRecord.session,
+            date: firstRecord.session_date,
+            floor: { id: 0, name: firstRecord.floor_name },
+            leader: { id: 0, floor: firstRecord.floor_name, user: '' },
+            rooms: [
+              {
+                room_id: 1,
+                room_name: firstRecord.floor_name || 'Xona',
+                students: records.map((r: any) => ({
+                  id: r.id,
+                  student: {
+                    id: r.student,
+                    name: r.student_name,
+                    last_name: r.student_last_name
+                  },
+                  status: r.status
+                }))
+              }
+            ]
+          };
+        }
+      }
 
-      // Auto-expand all rooms
-      const allRoomIds = new Set<number>(result.rooms.map((room: { room_id: number }) => room.room_id));
-      setExpandedRooms(allRoomIds);
+      if (result && result.rooms) {
+        setAttendanceSession(result);
+        // Auto-expand all rooms
+        const allRoomIds = new Set<number>(result.rooms.map((room: { room_id: number }) => room.room_id));
+        setExpandedRooms(allRoomIds);
+      } else {
+        // If still no rooms, try to fetch from records API
+        const allRecordsRes = await apiService.getAttendanceRecords();
+        const allRecords = allRecordsRes.results || allRecordsRes;
+        
+        if (Array.isArray(allRecords)) {
+          const sessionRecords = allRecords.filter((r: any) => r.session.toString() === id.toString());
+          
+          if (sessionRecords.length > 0) {
+            const firstRecord = sessionRecords[0];
+            const sessionData = {
+              id: firstRecord.session,
+              date: firstRecord.session_date,
+              floor: { id: 0, name: firstRecord.floor_name },
+              leader: { id: 0, floor: firstRecord.floor_name, user: '' },
+              rooms: [
+                {
+                  room_id: 1,
+                  room_name: firstRecord.floor_name || 'Xona',
+                  students: sessionRecords.map((r: any) => ({
+                    id: r.id,
+                    student: {
+                      id: r.student,
+                      name: r.student_name,
+                      last_name: r.student_last_name
+                    },
+                    status: r.status
+                  }))
+                }
+              ]
+            };
+            setAttendanceSession(sessionData);
+            setExpandedRooms(new Set([1]));
+          } else {
+            setError('Davomat sessiyasi ma\'lumotlari topilmadi');
+          }
+        } else {
+          setError('Davomat sessiyasi ma\'lumotlari topilmadi');
+        }
+      }
 
     } catch (err) {
       console.error('Error fetching attendance session:', err);
@@ -187,7 +262,6 @@ const AttendanceDetail: React.FC = () => {
 
   // Load attendance session on component mount
   useEffect(() => {
-    // console.debug('AttendanceDetail mounted with id:', id);
     if (id === 'new') {
       createAttendanceSession();
     } else {
@@ -199,14 +273,19 @@ const AttendanceDetail: React.FC = () => {
   const getSessionStats = (session: AttendanceSession) => {
     let present = 0, absent = 0;
 
-    session.rooms.forEach(room => {
-      room.students.forEach(student => {
-        if (student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In') present++;
-        else if (student.status === "Yo'q" || student.status === 'out' || student.status === 'Out') absent++;
+    if (session && session.rooms && Array.isArray(session.rooms)) {
+      session.rooms.forEach(room => {
+        if (room.students && Array.isArray(room.students)) {
+          room.students.forEach(student => {
+            const status = student.status?.toLowerCase();
+            if (status === 'hozir' || status === 'bor' || status === 'in') present++;
+            else if (status === "yo'q" || status === 'out') absent++;
+          });
+        }
       });
-    });
+    }
 
-    const total = session.rooms.reduce((sum, room) => sum + room.students.length, 0);
+    const total = session?.rooms?.reduce((sum, room) => sum + (room?.students?.length || 0), 0) || 0;
     return { present, absent, total };
   };
 
@@ -294,7 +373,7 @@ const AttendanceDetail: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-[5px]">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
@@ -302,12 +381,12 @@ const AttendanceDetail: React.FC = () => {
 
       {/* Statistics - Updated for 2 statuses only */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-emerald-50 rounded-lg p-4 text-center">
+        <div className="bg-emerald-50 rounded-[5px] p-4 text-center">
           <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-emerald-600">{stats.present}</p>
           <p className="text-sm text-emerald-700">Bor</p>
         </div>
-        <div className="bg-red-50 rounded-lg p-4 text-center">
+        <div className="bg-red-50 rounded-[5px] p-4 text-center">
           <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
           <p className="text-sm text-red-700">Yo'q</p>
@@ -316,8 +395,13 @@ const AttendanceDetail: React.FC = () => {
 
       {/* Rooms - All expanded by default */}
       <div className="space-y-4">
-        {attendanceSession.rooms.map((room) => {
+        {attendanceSession.rooms && Array.isArray(attendanceSession.rooms) && attendanceSession.rooms.map((room) => {
           const isExpanded = expandedRooms.has(room.room_id);
+          const roomStats = room.students ? {
+            present: room.students.filter(s => s.status?.toLowerCase() === 'hozir' || s.status?.toLowerCase() === 'bor' || s.status?.toLowerCase() === 'in').length,
+            absent: room.students.filter(s => s.status?.toLowerCase() === "yo'q" || s.status?.toLowerCase() === 'out').length,
+            total: room.students.length
+          } : { present: 0, absent: 0, total: 0 };
           
           return (
             <Card key={room.room_id} className="overflow-hidden">
@@ -344,7 +428,7 @@ const AttendanceDetail: React.FC = () => {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="space-y-3">
                       {room.students.map((student) => (
-                        <div key={student.id} className="bg-white rounded-lg p-4 shadow-sm">
+                        <div key={student.id} className="bg-white rounded-[5px] p-4 shadow-sm">
                           <div className="flex flex-col space-y-4">
                             <div className="text-center">
                               <p className="font-medium text-gray-900 text-lg">
@@ -361,7 +445,7 @@ const AttendanceDetail: React.FC = () => {
                                   updateStudentStatus(student.id, 'Hozir');
                                 }}
                                 className={clsx(
-                                  "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                  "py-4 px-4 rounded-[5px] text-base font-medium transition-all duration-200 active:scale-95",
                                   student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In'
                                     ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
                                     : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
@@ -376,7 +460,7 @@ const AttendanceDetail: React.FC = () => {
                                   updateStudentStatus(student.id, 'Yo\'q');
                                 }}
                                 className={clsx(
-                                  "py-4 px-4 rounded-lg text-base font-medium transition-all duration-200 active:scale-95",
+                                  "py-4 px-4 rounded-[5px] text-base font-medium transition-all duration-200 active:scale-95",
                                   student.status === 'Yo\'q' || student.status === 'out' || student.status === 'Out'
                                     ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
                                     : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"

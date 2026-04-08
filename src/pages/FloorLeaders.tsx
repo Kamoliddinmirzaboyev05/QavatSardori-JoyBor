@@ -230,7 +230,7 @@ const FloorLeaders: React.FC = () => {
             exit={{ opacity: 0 }}
           />
           <motion.div
-            className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="relative bg-white rounded-[5px] shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -258,7 +258,7 @@ const FloorLeaders: React.FC = () => {
                     type="text"
                     value={formData.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.username ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Foydalanuvchi nomini kiriting"
@@ -277,7 +277,7 @@ const FloorLeaders: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         errors.password ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Parolni kiriting"
@@ -303,7 +303,7 @@ const FloorLeaders: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Email kiriting"
@@ -321,7 +321,7 @@ const FloorLeaders: React.FC = () => {
                     type="text"
                     value={formData.floorName}
                     onChange={(e) => handleInputChange('floorName', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.floorName ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Qavat nomini kiriting"
@@ -338,7 +338,7 @@ const FloorLeaders: React.FC = () => {
                   <select
                     value={formData.gender}
                     onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="male">Erkak</option>
                     <option value="female">Ayol</option>
@@ -353,7 +353,7 @@ const FloorLeaders: React.FC = () => {
                     type="number"
                     value={formData.floorNumber}
                     onChange={(e) => handleInputChange('floorNumber', parseInt(e.target.value))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.floorNumber ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Qavat raqamini kiriting"

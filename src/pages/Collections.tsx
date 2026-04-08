@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, DollarSign, Calendar, ChevronRight } from 'lucide-react';
+import { Plus, DollarSign, Calendar, ChevronRight, RefreshCw } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import CollectionForm from '../components/collections/CollectionForm';
@@ -126,69 +126,63 @@ const Collections: React.FC = () => {
 
   return (
     <motion.div 
-      className="p-4 space-y-4 pb-20"
+      className="p-4 space-y-6 pb-24"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.div 
-        className="flex items-center justify-between"
+        className="flex flex-col space-y-4"
         variants={itemVariants}
       >
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Yig'imlar</h2>
-          <p className="text-sm text-gray-600">Talabalar to'lovlarini boshqarish</p>
+          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Yig'imlar</h2>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Talabalar to'lovlarini boshqarish</p>
         </div>
-        <div className="flex space-x-2">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        
+        <div className="flex gap-2">
+          <Button 
+            onClick={fetchCollections}
+            variant="secondary"
+            disabled={isLoading}
+            className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 rounded-[5px] text-[10px] font-bold uppercase tracking-widest"
           >
-            <Button 
-              onClick={fetchCollections}
-              variant="secondary"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-              ) : (
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              )}
-              Yangilash
-            </Button>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            {isLoading ? (
+              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5 mr-2" />
+            )}
+            Yangilash
+          </Button>
+          
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="flex-1 bg-gray-900 hover:bg-black text-white py-3 rounded-[5px] text-[10px] font-bold uppercase tracking-widest"
           >
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Yangi yig'im
-            </Button>
-          </motion.div>
+            <Plus className="w-3.5 h-3.5 mr-2" />
+            Yangi yig'im
+          </Button>
         </div>
       </motion.div>
 
       {error && (
         <motion.div 
-          className="p-3 bg-red-50 border border-red-200 rounded-lg"
+          className="p-3 bg-red-50 border border-red-100 rounded-[5px]"
           variants={itemVariants}
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-[10px] font-bold text-red-600 uppercase text-center">{error}</p>
         </motion.div>
       )}
 
       {isLoading && (
         <motion.div 
-          className="text-center py-8"
+          className="text-center py-12"
           variants={itemVariants}
         >
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Yig'imlar yuklanmoqda...</p>
+          <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Yuklanmoqda...</p>
         </motion.div>
       )}
 
@@ -197,97 +191,90 @@ const Collections: React.FC = () => {
         variants={containerVariants}
       >
         {!isLoading && collections.length > 0 ? (
-          collections.map((collection, index) => {
+          collections.map((collection) => {
             const stats = getCollectionStats(collection);
-            console.log(`Rendering collection ${collection.id}:`, { collection, stats });
             
             return (
               <motion.div
                 key={collection.id}
                 variants={itemVariants}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.99 }}
               >
                 <Card 
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className="p-0 overflow-hidden border border-gray-100 hover:shadow-md transition-all"
                   onClick={() => handleCollectionClick(collection)}
                 >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{collection.title}</h3>
+                  <div className="p-4 border-b border-gray-50 bg-white">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{collection.title}</h3>
+                      <p className="text-lg font-black text-gray-900 leading-none">
+                        {collection.amount.toLocaleString()} <span className="text-[10px] font-bold text-gray-400 uppercase">so'm</span>
+                      </p>
+                    </div>
                     {collection.description && (
-                      <p className="text-sm text-gray-600 mt-1">{collection.description}</p>
+                      <p className="text-[11px] text-gray-500 font-medium line-clamp-1">{collection.description}</p>
                     )}
                   </div>
-                  <div className="text-right ml-4">
-                    <p className="text-lg font-bold text-gray-900">
-                      {collection.amount.toLocaleString()} so'm
-                    </p>
-                    <ChevronRight className="w-4 h-4 text-gray-400 ml-auto mt-1" />
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between text-sm mb-3">
-                  <div className="flex items-center text-gray-600">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {collection.deadline ? (
-                      <>Muddat: {formatDate(collection.deadline)}</>
-                    ) : (
-                      'Muddat belgilanmagan'
-                    )}
-                  </div>
-                  <div className="text-blue-600 font-medium">
+                  <div className="p-4 space-y-4 bg-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                        {collection.deadline ? formatDate(collection.deadline) : 'Muddat yo\'q'}
+                      </div>
+                      <div className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                        {stats.paid}/{stats.total} <span className="text-gray-400">to'landi</span>
+                      </div>
+                    </div>
+
                     {stats.total > 0 ? (
-                      `${stats.paid}/${stats.total} to'landi (${stats.percentage}%)`
+                      <div className="space-y-3">
+                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <motion.div 
+                            className="bg-gray-900 h-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${stats.percentage}%` }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-gray-50 p-2 rounded-[5px] border border-gray-100">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-0.5">Yig'ildi</p>
+                            <p className="text-xs font-black text-gray-900">{stats.collected.toLocaleString()} so'm</p>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded-[5px] border border-gray-100">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-0.5">Kutilmoqda</p>
+                            <p className="text-xs font-black text-gray-900">{stats.expected.toLocaleString()} so'm</p>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                      'Ma\'lumot yo\'q'
+                      <div className="text-center py-2 bg-gray-50 rounded-[5px] border border-dashed border-gray-200">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ma'lumotlar yo'q</p>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {stats.total > 0 ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Yig'ildi</span>
-                      <span className="font-medium text-green-600">
-                        {stats.collected.toLocaleString()} so'm
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Kutilayotgan</span>
-                      <span className="font-medium text-gray-900">
-                        {stats.expected.toLocaleString()} so'm
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${stats.percentage}%` }}
-                      />
-                    </div>
+                  <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-[9px] font-black text-gray-900 uppercase tracking-widest">Batafsil ko'rish</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
                   </div>
-                ) : (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    Hali talabalar ro'yxati yuklanmagan
-                  </div>
-                )}
                 </Card>
               </motion.div>
             );
           })
         ) : !isLoading ? (
           <motion.div variants={itemVariants}>
-            <Card className="text-center py-8">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-              >
-                <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              </motion.div>
-              <p className="text-gray-500">Hali yig'imlar yo'q</p>
-              <p className="text-sm text-gray-400 mt-1">Boshlash uchun birinchi yig'imingizni yarating</p>
+            <Card className="text-center py-16 border-dashed border-2 border-gray-100 bg-transparent shadow-none">
+              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <DollarSign className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-2">Yig'imlar yo'q</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
+                Hali hech qanday yig'im yaratilmagan. Boshlash uchun tugmani bosing.
+              </p>
             </Card>
           </motion.div>
         ) : null}

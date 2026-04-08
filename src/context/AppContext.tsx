@@ -39,8 +39,14 @@ const AppContext = createContext<{
 } | undefined>(undefined);
 
 function appReducer(state: AppState, action: AppAction): AppState {
+  if (!action) {
+    console.error('Reducer called without action');
+    return state;
+  }
+
   switch (action.type) {
     case 'LOGIN_SUCCESS':
+      if (!action.payload) return state;
       return { 
         ...state, 
         isAuthenticated: true,
@@ -55,15 +61,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...initialState };
 
     case 'LOAD_DATA':
+      if (!action.payload) return state;
       return { ...state, ...action.payload };
 
     case 'UPDATE_USER':
+      if (!action.payload) return state;
       return {
         ...state,
         user: action.payload
       };
 
     case 'ADD_STUDENT': {
+      if (!action.payload) return state;
       const newStudent: Student = {
         ...action.payload,
         id: generateId(),
@@ -73,6 +82,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'UPDATE_STUDENT':
+      if (!action.payload) return state;
       return {
         ...state,
         students: state.students.map(student =>
@@ -89,6 +99,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'ADD_ATTENDANCE': {
+      if (!action.payload) return state;
       const newAttendance: AttendanceRecord = {
         ...action.payload,
         id: generateId(),
@@ -98,6 +109,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'UPDATE_ATTENDANCE':
+      if (!action.payload) return state;
       return {
         ...state,
         attendance: state.attendance.map(record =>
@@ -106,6 +118,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'ADD_COLLECTION': {
+      if (!action.payload) return state;
       const newCollection: Collection = {
         ...action.payload,
         id: generateId(),
@@ -130,6 +143,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'ADD_PAYMENT': {
+      if (!action.payload) return state;
       const newPayment: Payment = {
         ...action.payload,
         id: generateId(),
@@ -139,6 +153,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'UPDATE_PAYMENT':
+      if (!action.payload) return state;
       return {
         ...state,
         payments: state.payments.map(payment =>
@@ -147,6 +162,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'ADD_ANNOUNCEMENT': {
+      if (!action.payload) return state;
       const newAnnouncement: Announcement = {
         ...action.payload,
         id: generateId(),
@@ -156,6 +172,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'ADD_REQUEST': {
+      if (!action.payload) return state;
       const newRequest: Request = {
         ...action.payload,
         id: generateId(),
@@ -165,6 +182,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'UPDATE_REQUEST':
+      if (!action.payload) return state;
       return {
         ...state,
         requests: state.requests.map(request =>
@@ -173,6 +191,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'MARK_ANNOUNCEMENT_READ': {
+      if (!action.payload) return state;
       const existingRead = state.announcementReads.find(
         read => read.announcementId === action.payload.announcementId &&
           read.studentId === action.payload.studentId
@@ -222,7 +241,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (state.isAuthenticated) {
       const fetchStudents = async () => {
         try {
-          const studentsData = await apiService.getStudents();
+          const response = await apiService.getStudents();
+          const studentsData = response.results || response;
           if (Array.isArray(studentsData)) {
             // Map API response to Student type
             const students: Student[] = studentsData.map((s: any) => ({

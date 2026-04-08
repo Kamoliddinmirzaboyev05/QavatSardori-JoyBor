@@ -39,7 +39,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-white rounded-t-lg sm:rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-t-lg sm:rounded-[5px] w-full max-w-md max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Yangi e'lon</h2>
           <button
@@ -58,7 +58,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
             <input
               {...register('title')}
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="masalan, Muhim xabar"
             />
             {errors.title && (
@@ -73,7 +73,7 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
             <textarea
               {...register('content')}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="E'loningizni bu yerga yozing..."
             />
             {errors.content && (
