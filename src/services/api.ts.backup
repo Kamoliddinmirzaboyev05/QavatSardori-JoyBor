@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://joyboryangi.pythonanywhere.com';
+const API_BASE_URL = 'https://api.joyboronline.uz';
 
 class ApiService {
   private getAuthHeaders() {

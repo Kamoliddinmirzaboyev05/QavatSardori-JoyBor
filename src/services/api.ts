@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://joyborv1.pythonanywhere.com/api';
+const API_BASE_URL = 'https://api.joyboronline.uz/';
+const API_ROOT = API_BASE_URL.replace(/\/+$/, '');
 
 class ApiService {
   private getAuthHeaders() {
@@ -56,7 +57,7 @@ class ApiService {
 
   // Authentication
   async login(username: string, password: string) {
-    const response = await fetch(`${API_BASE_URL}/token/`, {
+    const response = await fetch(`${API_ROOT}/token/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ class ApiService {
 
   // Attendance Sessions - Full Create (session + records in one call)
   async fullCreateAttendanceSession(data: { date: string; records: { student_id: number; status: 'in' | 'out' }[] }) {
-    const response = await fetch(`${API_BASE_URL}/attendance-sessions/full-create/`, {
+    const response = await fetch(`${API_ROOT}/attendance-sessions/full-create/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
@@ -80,7 +81,7 @@ class ApiService {
 
   // Attendance Sessions
   async createAttendanceSession(data?: { date: string; floor: number; leader: number }) {
-    const response = await fetch(`${API_BASE_URL}/attendance-sessions/create/`, {
+    const response = await fetch(`${API_ROOT}/attendance-sessions/create/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data || {}),
@@ -90,7 +91,7 @@ class ApiService {
   }
 
   async getAttendanceSessions() {
-    const response = await fetch(`${API_BASE_URL}/attendance-sessions/`, {
+    const response = await fetch(`${API_ROOT}/attendance-sessions/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -99,7 +100,7 @@ class ApiService {
   }
 
   async getAttendanceSession(sessionId: string) {
-    const response = await fetch(`${API_BASE_URL}/attendance-sessions/${sessionId}/`, {
+    const response = await fetch(`${API_ROOT}/attendance-sessions/${sessionId}/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -109,7 +110,7 @@ class ApiService {
 
   // Attendance Records - Get all records
   async getAttendanceRecords() {
-    const response = await fetch(`${API_BASE_URL}/attendance-records/`, {
+    const response = await fetch(`${API_ROOT}/attendance-records/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -120,12 +121,12 @@ class ApiService {
   // Attendance Records - Bulk Update
   async updateAttendanceRecords(sessionId: string, records: any[]) {
     console.log('API Request Details:');
-    console.log('URL:', `${API_BASE_URL}/attendance-records/${sessionId}/bulk-update/`);
+    console.log('URL:', `${API_ROOT}/attendance-records/${sessionId}/bulk-update/`);
     console.log('Method: PATCH');
     console.log('Headers:', this.getAuthHeaders());
     console.log('Body:', JSON.stringify({ records }, null, 2));
 
-    const response = await fetch(`${API_BASE_URL}/attendance-records/${sessionId}/bulk-update/`, {
+    const response = await fetch(`${API_ROOT}/attendance-records/${sessionId}/bulk-update/`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
       body: JSON.stringify({ records }),
@@ -136,7 +137,7 @@ class ApiService {
 
   // Students
   async getStudents() {
-    const response = await fetch(`${API_BASE_URL}/students/`, {
+    const response = await fetch(`${API_ROOT}/students/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -145,7 +146,7 @@ class ApiService {
   }
 
   async createStudent(studentData: any) {
-    const response = await fetch(`${API_BASE_URL}/students/`, {
+    const response = await fetch(`${API_ROOT}/students/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(studentData),
@@ -155,7 +156,7 @@ class ApiService {
   }
 
   async updateStudent(studentId: string, studentData: any) {
-    const response = await fetch(`${API_BASE_URL}/students/${studentId}/`, {
+    const response = await fetch(`${API_ROOT}/students/${studentId}/`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(studentData),
@@ -165,7 +166,7 @@ class ApiService {
   }
 
   async deleteStudent(studentId: string) {
-    const response = await fetch(`${API_BASE_URL}/students/${studentId}/`, {
+    const response = await fetch(`${API_ROOT}/students/${studentId}/`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
@@ -178,7 +179,7 @@ class ApiService {
 
   // Collections
   async getCollections() {
-    const response = await fetch(`${API_BASE_URL}/collections/`, {
+    const response = await fetch(`${API_ROOT}/collections/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -187,7 +188,7 @@ class ApiService {
   }
 
   async getCollection(collectionId: string) {
-    const response = await fetch(`${API_BASE_URL}/collections/${collectionId}/`, {
+    const response = await fetch(`${API_ROOT}/collections/${collectionId}/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -196,7 +197,7 @@ class ApiService {
   }
 
   async createCollection(collectionData: { title: string; amount: number; description?: string; deadline?: string; }) {
-    const response = await fetch(`${API_BASE_URL}/collections/create/`, {
+    const response = await fetch(`${API_ROOT}/collections/create/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(collectionData),
@@ -206,7 +207,7 @@ class ApiService {
   }
 
   async updateCollectionRecords(recordId: number, data: { status: string; collection: number; student: number }) {
-    const response = await fetch(`${API_BASE_URL}/collection-records/${recordId}/`, {
+    const response = await fetch(`${API_ROOT}/collection-records/${recordId}/`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
@@ -215,7 +216,7 @@ class ApiService {
   }
 
   async createCollectionRecord(data: { status: string; collection: number; student: number }) {
-    const response = await fetch(`${API_BASE_URL}/collection-records/`, {
+    const response = await fetch(`${API_ROOT}/collection-records/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
@@ -225,7 +226,7 @@ class ApiService {
 
   // Requests
   async getRequests() {
-    const response = await fetch(`${API_BASE_URL}/requests/`, {
+    const response = await fetch(`${API_ROOT}/requests/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -234,7 +235,7 @@ class ApiService {
   }
 
   async createRequest(requestData: any) {
-    const response = await fetch(`${API_BASE_URL}/requests/`, {
+    const response = await fetch(`${API_ROOT}/requests/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(requestData),
@@ -244,7 +245,7 @@ class ApiService {
   }
 
   async updateRequest(requestId: string, requestData: any) {
-    const response = await fetch(`${API_BASE_URL}/requests/${requestId}/`, {
+    const response = await fetch(`${API_ROOT}/requests/${requestId}/`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(requestData),
@@ -255,7 +256,7 @@ class ApiService {
 
   // Announcements
   async getAnnouncements() {
-    const response = await fetch(`${API_BASE_URL}/announcements/`, {
+    const response = await fetch(`${API_ROOT}/announcements/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -264,7 +265,7 @@ class ApiService {
   }
 
   async createAnnouncement(announcementData: any) {
-    const response = await fetch(`${API_BASE_URL}/announcements/`, {
+    const response = await fetch(`${API_ROOT}/announcements/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(announcementData),
@@ -275,7 +276,7 @@ class ApiService {
 
   // Leader Statistics
   async getLeaderStatistics() {
-    const response = await fetch(`${API_BASE_URL}/statistic-for-leader/`, {
+    const response = await fetch(`${API_ROOT}/statistic-for-leader/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -284,7 +285,7 @@ class ApiService {
 
   // Dashboard Data
   async getDashboardData() {
-    const response = await fetch(`${API_BASE_URL}/floor-leader/dashboard/`, {
+    const response = await fetch(`${API_ROOT}/floor-leader/dashboard/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -293,7 +294,7 @@ class ApiService {
 
   // Profile Management
   async getProfile() {
-    const response = await fetch(`${API_BASE_URL}/profile/`, {
+    const response = await fetch(`${API_ROOT}/profile/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
@@ -301,7 +302,7 @@ class ApiService {
   }
 
   async updateProfile(profileData: { first_name: string; last_name: string; phone?: string; email?: string; }) {
-    const response = await fetch(`${API_BASE_URL}/profile/update/`, {
+    const response = await fetch(`${API_ROOT}/profile/update/`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(profileData),
@@ -310,7 +311,7 @@ class ApiService {
   }
 
   async changePassword(passwordData: { old_password: string; new_password: string; }) {
-    const response = await fetch(`${API_BASE_URL}/change-password/`, {
+    const response = await fetch(`${API_ROOT}/change-password/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(passwordData),
@@ -333,7 +334,7 @@ class ApiService {
     floor: number;
     user: number;
   }) {
-    const response = await fetch(`${API_BASE_URL}/floor-leaders/`, {
+    const response = await fetch(`${API_ROOT}/floor-leaders/`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(leaderData),
@@ -342,7 +343,7 @@ class ApiService {
   }
 
   async getFloorLeaders() {
-    const response = await fetch(`${API_BASE_URL}/floor-leaders/`, {
+    const response = await fetch(`${API_ROOT}/floor-leaders/`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
     });
