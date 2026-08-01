@@ -40,56 +40,58 @@ const Login: React.FC = () => {
     try {
       const tokens = await apiService.login(data.username, data.password);
 
-      // Store tokens in session storage
       sessionStorage.setItem('access_token', tokens.access);
       sessionStorage.setItem('refresh_token', tokens.refresh);
-      sessionStorage.setItem('user_role', tokens.role);
 
-      // Fetch user profile to get more details (like floor ID)
+      // /me/ → UserMe (flat); JWT odatda role qaytarmaydi
       let userDetails: User = {
-        id: '1', // fallback
+        id: '1',
         name: data.username,
         lastName: '',
-        role: tokens.role
+        role: 'qavat_sardori',
       };
 
       try {
-        const profile = await apiService.getProfile();
-        
-        // Find if this user is a floor leader
-        const leaders = await apiService.getFloorLeaders();
-        const floorLeader = Array.isArray(leaders) 
-          ? leaders.find((l: any) => l.user_info.username === data.username || l.user === profile.user?.id)
-          : null;
+        const profile = (await apiService.getProfile()) as {
+          id?: number;
+          username?: string;
+          first_name?: string;
+          last_name?: string;
+          role?: string;
+          user?: { id?: number; username?: string; last_name?: string; role?: string };
+        };
+
+        const role = profile.role || profile.user?.role || 'sardor';
+        sessionStorage.setItem('user_role', role);
+
+        const leadersRes = await apiService.getFloorLeaders();
+        const leadersList = Array.isArray(leadersRes)
+          ? leadersRes
+          : ((leadersRes as { results?: unknown[] })?.results || []);
+        const profileId = profile.id ?? profile.user?.id;
+        const floorLeader = (leadersList as Array<{
+          id?: number;
+          floor?: number;
+          user?: number;
+          user_info?: { id?: number; username?: string; last_name?: string };
+        }>).find(
+          (l) =>
+            l.user_info?.username === data.username ||
+            l.user_info?.username === profile.username ||
+            l.user === profileId ||
+            l.user_info?.id === profileId
+        );
 
         userDetails = {
-          id: profile.user?.id?.toString() || profile.id?.toString() || '1',
-          name: profile.user?.username || data.username,
-          lastName: profile.user?.last_name || '',
-          role: tokens.role || profile.user?.role,
-          floor: floorLeader ? floorLeader.floor : profile.floor,
-          floorLeaderId: floorLeader ? floorLeader.id : undefined
+          id: String(profileId || floorLeader?.user || '1'),
+          name: profile.first_name || profile.username || data.username,
+          lastName: profile.last_name || profile.user?.last_name || '',
+          role: role === 'sardor' ? 'qavat_sardori' : role,
+          floor: floorLeader?.floor,
+          floorLeaderId: floorLeader?.id,
         };
-      } catch (profileErr) {
-        console.warn('Could not fetch user profile details, attempting floor leaders fallback:', profileErr);
-        try {
-          const leaders = await apiService.getFloorLeaders();
-          const floorLeader = Array.isArray(leaders) 
-            ? leaders.find((l: any) => l.user_info.username === data.username)
-            : null;
-          
-          if (floorLeader) {
-            userDetails = {
-              ...userDetails,
-              id: floorLeader.user?.toString() || '1',
-              name: floorLeader.user_info?.username || data.username,
-              floor: floorLeader.floor,
-              floorLeaderId: floorLeader.id
-            };
-          }
-        } catch (leaderErr) {
-          console.warn('Could not fetch floor leaders either:', leaderErr);
-        }
+      } catch {
+        sessionStorage.setItem('user_role', 'sardor');
       }
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });

@@ -245,14 +245,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const studentsData = response.results || response;
           if (Array.isArray(studentsData)) {
             // Map API response to Student type
-            const students: Student[] = studentsData.map((s: any) => ({
+            const students: Student[] = studentsData.map((s: {
+              id?: number | string;
+              first_name?: string;
+              name?: string;
+              last_name?: string;
+              room_name?: string;
+              room?: number | string | { id?: number; name?: string };
+              phone?: string;
+              accepted_date?: string;
+              created_at?: string;
+            }) => ({
               id: s.id?.toString() || generateId(),
-              name: s.first_name || s.name || '',
+              name: s.name || s.first_name || '',
               lastName: s.last_name || '',
-              room: s.room?.toString() || '',
+              room:
+                s.room_name ||
+                (typeof s.room === 'object' && s.room
+                  ? s.room.name || String(s.room.id || '')
+                  : s.room?.toString() || '') ||
+                '',
               phone: s.phone || '',
-              createdAt: s.created_at || new Date().toISOString(),
-              isDeleted: false
+              createdAt: s.accepted_date || s.created_at || new Date().toISOString(),
+              isDeleted: false,
             }));
             
             dispatch({ type: 'LOAD_DATA', payload: { students } });

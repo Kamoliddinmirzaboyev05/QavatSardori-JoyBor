@@ -1,47 +1,77 @@
-import React, { useState, useMemo } from 'react';
-import { MessageCircle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { MessageCircle, Clock, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { useApp } from '../context/AppContext';
 import { formatDateTime } from '../utils/storage';
 import { clsx } from 'clsx';
+import apiService from '../services/api';
+import { toast } from 'sonner';
+
+type ApiStatus = 'pending' | 'in_progress' | 'resolved' | 'rejected';
+type UiFilter = 'barchasi' | 'pending' | 'in_progress' | 'resolved';
+
+interface Complaint {
+  id: number;
+  title: string;
+  description: string;
+  status: ApiStatus;
+  category?: string;
+  student_name?: string;
+  admin_response?: string;
+  created_at?: string;
+}
+
+const STATUS_MAP: Record<ApiStatus, string> = {
+  pending: 'Ochiq',
+  in_progress: 'Jarayonda',
+  resolved: 'Hal qilindi',
+  rejected: 'Rad etildi',
+};
 
 const Requests: React.FC = () => {
-  const { state, dispatch } = useApp();
-  const [selectedStatus, setSelectedStatus] = useState<'barchasi' | 'ochiq' | 'jarayonda' | 'hal_qilindi'>('barchasi');
+  const [selectedStatus, setSelectedStatus] = useState<UiFilter>('barchasi');
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const activeStudents = useMemo(() => {
-    return state.students.filter(student => !student.isDeleted);
-  }, [state.students]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await apiService.getComplaints(
+        selectedStatus === 'barchasi' ? undefined : { status: selectedStatus }
+      );
+      const list = Array.isArray(data)
+        ? data
+        : ((data as { results?: Complaint[] })?.results || []);
+      setComplaints(list as Complaint[]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "So'rovlarni yuklashda xatolik");
+      setComplaints([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedStatus]);
 
-  const filteredRequests = useMemo(() => {
-    return state.requests.filter(request => 
-      selectedStatus === 'barchasi' || request.status === selectedStatus
-    );
-  }, [state.requests, selectedStatus]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const getStudentName = (studentId: string) => {
-    const student = activeStudents.find(s => s.id === studentId);
-    return student ? `${student.name} ${student.lastName || ''}`.trim() : 'Noma\'lum talaba';
-  };
-
-  const updateRequestStatus = (requestId: string, status: 'ochiq' | 'jarayonda' | 'hal_qilindi') => {
-    const request = state.requests.find(r => r.id === requestId);
-    if (request) {
-      dispatch({
-        type: 'UPDATE_REQUEST',
-        payload: { ...request, status }
-      });
+  const updateStatus = async (id: number, status: ApiStatus) => {
+    try {
+      await apiService.updateComplaint(id, { status });
+      toast.success('Holat yangilandi');
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Yangilashda xatolik');
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ochiq':
+      case 'pending':
         return <AlertCircle className="w-5 h-5 text-red-500" />;
-      case 'jarayonda':
+      case 'in_progress':
         return <Clock className="w-5 h-5 text-orange-500" />;
-      case 'hal_qilindi':
+      case 'resolved':
         return <CheckCircle className="w-5 h-5 text-emerald-500" />;
       default:
         return <MessageCircle className="w-5 h-5 text-gray-500" />;
@@ -50,62 +80,62 @@ const Requests: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ochiq':
+      case 'pending':
         return 'text-red-600 bg-red-50 border-red-200';
-      case 'jarayonda':
+      case 'in_progress':
         return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'hal_qilindi':
+      case 'resolved':
         return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       default:
         return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
-  const statusCounts = {
-    barchasi: state.requests.length,
-    ochiq: state.requests.filter(r => r.status === 'ochiq').length,
-    jarayonda: state.requests.filter(r => r.status === 'jarayonda').length,
-    hal_qilindi: state.requests.filter(r => r.status === 'hal_qilindi').length
-  };
+  const filters: UiFilter[] = ['barchasi', 'pending', 'in_progress', 'resolved'];
 
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">So'rovlar</h2>
-          <p className="text-sm text-gray-600">Talabalar so'rovlarini boshqarish</p>
+          <h2 className="text-xl font-bold text-gray-900">So'rovlar / Shikoyatlar</h2>
+          <p className="text-sm text-gray-600">Talabalar shikoyatlarini boshqarish (API)</p>
         </div>
+        <Button size="sm" variant="secondary" onClick={load}>
+          <RefreshCw className={clsx('w-4 h-4', loading && 'animate-spin')} />
+        </Button>
       </div>
 
-      {/* Status Filter */}
       <Card>
         <div className="grid grid-cols-4 gap-2">
-          {(['barchasi', 'ochiq', 'jarayonda', 'hal_qilindi'] as const).map((status) => (
+          {filters.map((status) => (
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
               className={clsx(
-                "flex flex-col items-center p-3 rounded-[5px] transition-colors",
+                'flex flex-col items-center p-3 rounded-[5px] transition-colors',
                 selectedStatus === status
-                  ? "bg-blue-100 text-blue-700 border-2 border-blue-300"
-                  : "bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100"
+                  ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                  : 'bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100'
               )}
             >
-              <span className="text-lg font-bold">{statusCounts[status]}</span>
-              <span className="text-xs capitalize">
-                {status === 'barchasi' ? 'Barchasi' : 
-                 status === 'ochiq' ? 'Ochiq' :
-                 status === 'jarayonda' ? 'Jarayonda' : 'Hal qilindi'}
+              <span className="text-xs capitalize text-center">
+                {status === 'barchasi'
+                  ? 'Barchasi'
+                  : STATUS_MAP[status as ApiStatus] || status}
               </span>
             </button>
           ))}
         </div>
       </Card>
 
-      {/* Requests List */}
       <div className="space-y-3">
-        {filteredRequests.length > 0 ? (
-          filteredRequests.map((request) => (
+        {loading ? (
+          <Card className="text-center py-8">
+            <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin" />
+            <p className="text-gray-500">Yuklanmoqda...</p>
+          </Card>
+        ) : complaints.length > 0 ? (
+          complaints.map((request) => (
             <Card key={request.id}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -113,42 +143,46 @@ const Requests: React.FC = () => {
                     {getStatusIcon(request.status)}
                     <h3 className="font-semibold text-gray-900">{request.title}</h3>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{request.content}</p>
+                  <p className="text-sm text-gray-600 mb-2">{request.description}</p>
                   <p className="text-xs text-gray-500">
-                    Kimdan: {getStudentName(request.studentId)} • {formatDateTime(request.createdAt)}
+                    Kimdan: {request.student_name || 'Noma\'lum'}
+                    {request.created_at ? ` • ${formatDateTime(request.created_at)}` : ''}
+                    {request.category ? ` • ${request.category}` : ''}
                   </p>
+                  {request.admin_response && (
+                    <p className="text-xs text-blue-700 mt-2">Javob: {request.admin_response}</p>
+                  )}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <div
                   className={clsx(
-                    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border",
+                    'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border',
                     getStatusColor(request.status)
                   )}
                 >
-                  {request.status === 'ochiq' ? 'OCHIQ' :
-                   request.status === 'jarayonda' ? 'JARAYONDA' : 'HAL QILINDI'}
+                  {STATUS_MAP[request.status] || request.status}
                 </div>
 
-                {request.status !== 'hal_qilindi' && (
+                {request.status !== 'resolved' && request.status !== 'rejected' && (
                   <div className="flex space-x-2">
-                    {request.status === 'ochiq' && (
+                    {request.status === 'pending' && (
                       <Button
                         size="sm"
                         variant="warning"
-                        onClick={() => updateRequestStatus(request.id, 'jarayonda')}
+                        onClick={() => updateStatus(request.id, 'in_progress')}
                       >
                         Jarayonni boshlash
                       </Button>
                     )}
-                    {request.status === 'jarayonda' && (
+                    {request.status === 'in_progress' && (
                       <Button
                         size="sm"
                         variant="success"
-                        onClick={() => updateRequestStatus(request.id, 'hal_qilindi')}
+                        onClick={() => updateStatus(request.id, 'resolved')}
                       >
-                        Hal qilindi deb belgilash
+                        Hal qilindi
                       </Button>
                     )}
                   </div>
@@ -161,11 +195,7 @@ const Requests: React.FC = () => {
             <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">So'rovlar topilmadi</p>
             <p className="text-sm text-gray-400 mt-1">
-              {selectedStatus === 'barchasi' 
-                ? 'Talabalar yordam uchun so\'rov yuborishi mumkin' 
-                : `${selectedStatus === 'ochiq' ? 'Ochiq' : 
-                     selectedStatus === 'jarayonda' ? 'Jarayondagi' : 'Hal qilingan'} so'rovlar yo'q`
-              }
+              Talabalar shikoyat yuborganda shu yerda ko'rinadi
             </p>
           </Card>
         )}

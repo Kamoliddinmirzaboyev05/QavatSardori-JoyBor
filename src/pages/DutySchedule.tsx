@@ -1,25 +1,28 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, User, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { useApp } from '../context/AppContext';
 import { formatDate } from '../utils/storage';
 import { clsx } from 'clsx';
+import apiService from '../services/api';
+import { toast } from 'sonner';
 
 interface DutyAssignment {
   id: string;
   room: string;
+  roomId?: number;
+  floorId?: number;
   date: string;
   status: 'tayinlangan' | 'bajarilgan' | 'bajarilmagan';
   createdAt: string;
 }
 
-interface AttendanceSession {
+interface ApiRoom {
   id: number;
-  date: string;
-  is_active: boolean;
-  created_at: string;
+  name: string;
+  floor?: number;
 }
 
 const DutySchedule: React.FC = () => {
@@ -27,70 +30,131 @@ const DutySchedule: React.FC = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<string>('');
   const [dutyAssignments, setDutyAssignments] = useState<DutyAssignment[]>([]);
+  const [apiRooms, setApiRooms] = useState<ApiRoom[]>([]);
 
   const activeStudents = useMemo(() => {
-    return state.students.filter(student => !student.isDeleted);
+    return state.students.filter((student) => !student.isDeleted);
   }, [state.students]);
 
-  // Get unique rooms from students
   const rooms = useMemo(() => {
-    const roomSet = new Set(activeStudents.map(student => student.room));
-    return Array.from(roomSet).sort((a, b) => parseInt(a) - parseInt(b));
-  }, [activeStudents]);
+    if (apiRooms.length > 0) {
+      return apiRooms.map((r) => r.name).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    }
+    const roomSet = new Set(activeStudents.map((student) => student.room));
+    return Array.from(roomSet).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  }, [activeStudents, apiRooms]);
 
-  // Get current duty assignment
+  const loadDuties = useCallback(async () => {
+    try {
+      const data = await apiService.getDutySchedules();
+      const list = Array.isArray(data)
+        ? data
+        : ((data as { results?: Array<{
+            id: number;
+            date: string;
+            room: number;
+            room_name?: string;
+            floor: number;
+            created_at?: string;
+          }> })?.results || []);
+
+      setDutyAssignments(
+        (list as Array<{
+          id: number;
+          date: string;
+          room: number;
+          room_name?: string;
+          floor: number;
+          created_at?: string;
+        }>).map((d) => ({
+          id: String(d.id),
+          room: d.room_name || String(d.room),
+          roomId: d.room,
+          floorId: d.floor,
+          date: d.date,
+          status: 'tayinlangan' as const,
+          createdAt: d.created_at || d.date,
+        }))
+      );
+    } catch {
+      // keep local if API fails
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDuties();
+    const floorId = state.user?.floor;
+    apiService
+      .getRooms(floorId)
+      .then((data) => {
+        const list = Array.isArray(data)
+          ? data
+          : ((data as { results?: ApiRoom[] })?.results || []);
+        setApiRooms(list as ApiRoom[]);
+      })
+      .catch(() => setApiRooms([]));
+  }, [loadDuties, state.user?.floor]);
+
   const currentDuty = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    return dutyAssignments.find(duty => duty.date === today);
+    return dutyAssignments.find((duty) => duty.date === today);
   }, [dutyAssignments]);
 
-  // Get next room for duty rotation
   const getNextRoom = () => {
     if (rooms.length === 0) return null;
-
-    const lastAssignment = dutyAssignments
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-
+    const lastAssignment = [...dutyAssignments].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
     if (!lastAssignment) return rooms[0];
-
-    const lastRoomIndex = rooms.findIndex(room => room === lastAssignment.room);
+    const lastRoomIndex = rooms.findIndex((room) => room === lastAssignment.room);
     const nextIndex = (lastRoomIndex + 1) % rooms.length;
     return rooms[nextIndex];
   };
 
-  // Assign duty to room
-  const assignDuty = () => {
+  const assignDuty = async () => {
     if (!selectedRoom) return;
-
     const today = new Date().toISOString().split('T')[0];
+    const roomObj = apiRooms.find((r) => r.name === selectedRoom || String(r.id) === selectedRoom);
+    const floorId = roomObj?.floor ?? state.user?.floor;
+
+    if (roomObj && floorId != null) {
+      try {
+        await apiService.createDutySchedule({
+          date: today,
+          floor: Number(floorId),
+          room: roomObj.id,
+        });
+        toast.success('Navbatchilik tayinlandi');
+        await loadDuties();
+        setShowAssignModal(false);
+        setSelectedRoom('');
+        return;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'API xatolik — lokal saqlandi');
+      }
+    }
+
     const newAssignment: DutyAssignment = {
       id: Date.now().toString(),
       room: selectedRoom,
       date: today,
       status: 'tayinlangan',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-
-    setDutyAssignments(prev => [...prev, newAssignment]);
+    setDutyAssignments((prev) => [...prev, newAssignment]);
     setShowAssignModal(false);
     setSelectedRoom('');
   };
 
-  // Mark duty as completed
   const markDutyCompleted = (dutyId: string) => {
-    setDutyAssignments(prev =>
-      prev.map(duty =>
-        duty.id === dutyId ? { ...duty, status: 'bajarilgan' } : duty
-      )
+    setDutyAssignments((prev) =>
+      prev.map((duty) => (duty.id === dutyId ? { ...duty, status: 'bajarilgan' } : duty))
     );
   };
 
-  // Mark duty as not completed
   const markDutyNotCompleted = (dutyId: string) => {
-    setDutyAssignments(prev =>
-      prev.map(duty =>
-        duty.id === dutyId ? { ...duty, status: 'bajarilmagan' } : duty
-      )
+    setDutyAssignments((prev) =>
+      prev.map((duty) => (duty.id === dutyId ? { ...duty, status: 'bajarilmagan' } : duty))
     );
   };
 

@@ -146,25 +146,9 @@ const AttendanceDetail: React.FC = () => {
     }
   };
 
-  // Create new attendance session
+  // Create new attendance session — yangi full-create oqimi AttendanceNew sahifasida
   const createAttendanceSession = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await apiService.createAttendanceSession();
-      // console.debug('Attendance session created:', result);
-
-      // Navigate to the new session
-      if (result && result.id) {
-        navigate(`/attendance/${result.id}`);
-      }
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Xatolik yuz berdi');
-    } finally {
-      setIsLoading(false);
-    }
+    navigate('/attendance/new');
   };
 
   // Fetch attendance session
@@ -173,87 +157,83 @@ const AttendanceDetail: React.FC = () => {
 
     setIsLoading(true);
     try {
-      let result = await apiService.getAttendanceSession(id);
-      console.log('Fetched attendance session:', result);
-      
-      // If result is an array (list of records), we need to group them
-      if (Array.isArray(result) || (result && !result.rooms && result.results)) {
+      let result: any = await apiService.getAttendanceSession(id);
+
+      // Session detail: records array → rooms guruhlash
+      const buildFromRecords = (records: any[], sessionMeta: any = {}) => {
+        const byRoom = new Map<string, { room_id: number; room_name: string; students: any[] }>();
+        records.forEach((r: any, idx: number) => {
+          const roomName = r.room_name || r.floor_name || 'Xona';
+          const key = roomName;
+          if (!byRoom.has(key)) {
+            byRoom.set(key, {
+              room_id: r.room || idx + 1,
+              room_name: roomName,
+              students: [],
+            });
+          }
+          byRoom.get(key)!.students.push({
+            id: r.id,
+            student: {
+              id: r.student,
+              name: r.student_name || r.name || '',
+              last_name: r.student_last_name || r.last_name || '',
+            },
+            status: r.status,
+          });
+        });
+        return {
+          id: sessionMeta.id || records[0]?.session || Number(id),
+          date: sessionMeta.date || records[0]?.session_date || records[0]?.date || '',
+          floor: {
+            id: sessionMeta.floor || 0,
+            name: sessionMeta.floor_name || records[0]?.floor_name || '',
+          },
+          leader: {
+            id: sessionMeta.leader || 0,
+            floor: sessionMeta.floor_name || '',
+            user: sessionMeta.leader_name || '',
+          },
+          rooms: Array.from(byRoom.values()),
+        };
+      };
+
+      if (result && Array.isArray(result.records) && !result.rooms) {
+        result = buildFromRecords(result.records, result);
+      } else if (Array.isArray(result) || (result && !result.rooms && result.results)) {
         const records = result.results || result;
         if (Array.isArray(records) && records.length > 0) {
-          // Construct a session-like object from records
-          const firstRecord = records[0];
-          result = {
-            id: firstRecord.session,
-            date: firstRecord.session_date,
-            floor: { id: 0, name: firstRecord.floor_name },
-            leader: { id: 0, floor: firstRecord.floor_name, user: '' },
-            rooms: [
-              {
-                room_id: 1,
-                room_name: firstRecord.floor_name || 'Xona',
-                students: records.map((r: any) => ({
-                  id: r.id,
-                  student: {
-                    id: r.student,
-                    name: r.student_name,
-                    last_name: r.student_last_name
-                  },
-                  status: r.status
-                }))
-              }
-            ]
-          };
+          result = buildFromRecords(records);
         }
       }
 
       if (result && result.rooms) {
         setAttendanceSession(result);
-        // Auto-expand all rooms
-        const allRoomIds = new Set<number>(result.rooms.map((room: { room_id: number }) => room.room_id));
+        const allRoomIds = new Set<number>(
+          result.rooms.map((room: { room_id: number }) => room.room_id)
+        );
         setExpandedRooms(allRoomIds);
       } else {
-        // If still no rooms, try to fetch from records API
-        const allRecordsRes = await apiService.getAttendanceRecords();
+        const allRecordsRes: any = await apiService.getAttendanceRecords({
+          session: Number(id),
+        });
         const allRecords = allRecordsRes.results || allRecordsRes;
-        
-        if (Array.isArray(allRecords)) {
-          const sessionRecords = allRecords.filter((r: any) => r.session.toString() === id.toString());
-          
-          if (sessionRecords.length > 0) {
-            const firstRecord = sessionRecords[0];
-            const sessionData = {
-              id: firstRecord.session,
-              date: firstRecord.session_date,
-              floor: { id: 0, name: firstRecord.floor_name },
-              leader: { id: 0, floor: firstRecord.floor_name, user: '' },
-              rooms: [
-                {
-                  room_id: 1,
-                  room_name: firstRecord.floor_name || 'Xona',
-                  students: sessionRecords.map((r: any) => ({
-                    id: r.id,
-                    student: {
-                      id: r.student,
-                      name: r.student_name,
-                      last_name: r.student_last_name
-                    },
-                    status: r.status
-                  }))
-                }
-              ]
-            };
-            setAttendanceSession(sessionData);
-            setExpandedRooms(new Set([1]));
-          } else {
-            setError('Davomat sessiyasi ma\'lumotlari topilmadi');
-          }
+
+        if (Array.isArray(allRecords) && allRecords.length > 0) {
+          const sessionRecords = allRecords.filter(
+            (r: { session?: number | string }) => String(r.session) === String(id)
+          );
+          const useRecords = sessionRecords.length > 0 ? sessionRecords : allRecords;
+          const sessionData = buildFromRecords(useRecords);
+          setAttendanceSession(sessionData);
+          setExpandedRooms(
+            new Set(sessionData.rooms.map((r: { room_id: number }) => r.room_id))
+          );
         } else {
-          setError('Davomat sessiyasi ma\'lumotlari topilmadi');
+          setError("Davomat sessiyasi ma'lumotlari topilmadi");
         }
       }
-
-    } catch (err) {
-      console.error('Error fetching attendance session:', err);
+    } catch {
       setError('Davomat sessiyasini yuklashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);

@@ -1,353 +1,483 @@
-const API_BASE_URL = 'https://api.joyboronline.uz/';
+const API_BASE_URL = 'https://api.joy-bor.uz/api';
 const API_ROOT = API_BASE_URL.replace(/\/+$/, '');
 
+type Json = Record<string, unknown> | unknown[] | null;
+
 class ApiService {
-  private getAuthHeaders() {
+  private getAuthHeaders(json = true): Record<string, string> {
     const token = sessionStorage.getItem('access_token');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    };
+    const headers: Record<string, string> = {};
+    if (json) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   }
 
-  private async handleResponse(response: Response) {
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token expired, redirect to login
+  private async tryRefresh(): Promise<boolean> {
+    const refresh = sessionStorage.getItem('refresh_token');
+    if (!refresh) return false;
+    try {
+      const res = await fetch(`${API_ROOT}/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (!data.access) return false;
+      sessionStorage.setItem('access_token', data.access);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async handleResponse(response: Response, retried = false): Promise<Json> {
+    if (response.status === 401 && !retried) {
+      const ok = await this.tryRefresh();
+      if (!ok) {
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('refresh_token');
         sessionStorage.removeItem('user_role');
-        window.location.href = '/login';
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
         throw new Error('Session expired');
       }
-      
-      // Try to get error details from response
+      // Caller should retry — surface special error
+      throw new Error('TOKEN_REFRESHED');
+    }
+
+    if (response.status === 401) {
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('user_role');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+      throw new Error('Session expired');
+    }
+
+    if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const text = await response.text();
         if (text) {
           try {
-            const errorData = JSON.parse(text);
-            if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
-            }
-          } catch (e) {
+            const errorData = JSON.parse(text) as {
+              detail?: string;
+              message?: string;
+              error?: string;
+            };
+            errorMessage =
+              errorData.detail || errorData.message || errorData.error || text;
+          } catch {
             errorMessage = text;
           }
         }
-      } catch (e) {
-        // If we can't read the error response, use the default message
+      } catch {
+        // keep default
       }
-      
       throw new Error(errorMessage);
     }
-    
+
     try {
       const text = await response.text();
       return text ? JSON.parse(text) : {};
-    } catch (e) {
-      console.error('Error parsing JSON response:', e);
+    } catch {
       return {};
     }
   }
 
-  // Authentication
+  private async request(
+    path: string,
+    options: RequestInit = {},
+    retried = false
+  ): Promise<Json> {
+    const jsonBody = !(options.body instanceof FormData);
+    const response = await fetch(`${API_ROOT}${path}`, {
+      ...options,
+      headers: {
+        ...this.getAuthHeaders(jsonBody && options.method !== 'GET'),
+        ...(options.headers as Record<string, string> | undefined),
+      },
+    });
+    try {
+      return await this.handleResponse(response, retried);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'TOKEN_REFRESHED' && !retried) {
+        return this.request(path, options, true);
+      }
+      throw e;
+    }
+  }
+
+  // ——— Auth ———
   async login(username: string, password: string) {
     const response = await fetch(`${API_ROOT}/token/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-
-    return this.handleResponse(response);
+    return this.handleResponse(response) as Promise<{
+      access: string;
+      refresh: string;
+      role?: string;
+    }>;
   }
 
-  // Attendance Sessions - Full Create (session + records in one call)
-  async fullCreateAttendanceSession(data: { date: string; records: { student_id: number; status: 'in' | 'out' }[] }) {
-    const response = await fetch(`${API_ROOT}/attendance-sessions/full-create/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-
-    return this.handleResponse(response);
+  // ——— Profile ———
+  async getProfile() {
+    return this.request('/me/');
   }
 
-  // Attendance Sessions
-  async createAttendanceSession(data?: { date: string; floor: number; leader: number }) {
-    const response = await fetch(`${API_ROOT}/attendance-sessions/create/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data || {}),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async getAttendanceSessions() {
-    const response = await fetch(`${API_ROOT}/attendance-sessions/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async getAttendanceSession(sessionId: string) {
-    const response = await fetch(`${API_ROOT}/attendance-sessions/${sessionId}/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  // Attendance Records - Get all records
-  async getAttendanceRecords() {
-    const response = await fetch(`${API_ROOT}/attendance-records/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  // Attendance Records - Bulk Update
-  async updateAttendanceRecords(sessionId: string, records: any[]) {
-    console.log('API Request Details:');
-    console.log('URL:', `${API_ROOT}/attendance-records/${sessionId}/bulk-update/`);
-    console.log('Method: PATCH');
-    console.log('Headers:', this.getAuthHeaders());
-    console.log('Body:', JSON.stringify({ records }, null, 2));
-
-    const response = await fetch(`${API_ROOT}/attendance-records/${sessionId}/bulk-update/`, {
+  async updateProfile(profileData: {
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    email?: string;
+    bio?: string;
+    address?: string;
+    telegram?: string;
+  }) {
+    return this.request('/me/', {
       method: 'PATCH',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ records }),
+      body: JSON.stringify(profileData),
     });
-
-    return this.handleResponse(response);
   }
 
-  // Students
-  async getStudents() {
-    const response = await fetch(`${API_ROOT}/students/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
+  /** API da alohida change-password yo'q — /me/ orqali emas, xabar beriladi */
+  async changePassword(_passwordData: {
+    old_password: string;
+    new_password: string;
+  }): Promise<never> {
+    throw new Error(
+      "Parol o'zgartirish endpointi API da mavjud emas. Superadmin orqali o'zgartiring."
+    );
   }
 
-  async createStudent(studentData: any) {
-    const response = await fetch(`${API_ROOT}/students/`, {
+  // ——— Dashboard ———
+  async getDashboardData() {
+    return this.request('/floor-leader/dashboard/');
+  }
+
+  async getLeaderStatistics() {
+    return this.request('/floor-leader/dashboard/');
+  }
+
+  // ——— Students ———
+  async getStudents(params?: { page?: number; floor?: number; search?: string }) {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.floor) sp.set('floor', String(params.floor));
+    if (params?.search) sp.set('search', params.search);
+    const q = sp.toString();
+    return this.request(`/students/${q ? `?${q}` : ''}`);
+  }
+
+  async createStudent(studentData: Record<string, unknown>) {
+    return this.request('/students/create/', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(studentData),
     });
-
-    return this.handleResponse(response);
   }
 
-  async updateStudent(studentId: string, studentData: any) {
-    const response = await fetch(`${API_ROOT}/students/${studentId}/`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
+  async updateStudent(studentId: string | number, studentData: Record<string, unknown>) {
+    return this.request(`/students/${studentId}/`, {
+      method: 'PATCH',
       body: JSON.stringify(studentData),
     });
-
-    return this.handleResponse(response);
   }
 
-  async deleteStudent(studentId: string) {
-    const response = await fetch(`${API_ROOT}/students/${studentId}/`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+  async deleteStudent(studentId: string | number) {
+    await this.request(`/students/${studentId}/`, { method: 'DELETE' });
     return true;
   }
 
-  // Collections
-  async getCollections() {
-    const response = await fetch(`${API_ROOT}/collections/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async getCollection(collectionId: string) {
-    const response = await fetch(`${API_ROOT}/collections/${collectionId}/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async createCollection(collectionData: { title: string; amount: number; description?: string; deadline?: string; }) {
-    const response = await fetch(`${API_ROOT}/collections/create/`, {
+  // ——— Attendance sessions ———
+  async fullCreateAttendanceSession(data: {
+    date: string;
+    records: { student_id: number; status: 'in' | 'out' }[];
+  }) {
+    return this.request('/attendance-sessions/full-create/', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createAttendanceSession(data?: {
+    date: string;
+    floor: number;
+    leader: number;
+  }) {
+    return this.request('/attendance-sessions/create/', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+  }
+
+  async getAttendanceSessions(params?: { floor?: number; date?: string; page?: number }) {
+    const sp = new URLSearchParams();
+    if (params?.floor) sp.set('floor', String(params.floor));
+    if (params?.date) sp.set('date', params.date);
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/attendance-sessions/${q ? `?${q}` : ''}`);
+  }
+
+  async getAttendanceSession(sessionId: string | number) {
+    return this.request(`/attendance-sessions/${sessionId}/`);
+  }
+
+  // ——— Attendance records ———
+  async getAttendanceRecords(params?: {
+    session?: number;
+    student?: number;
+    status?: string;
+    page?: number;
+  }) {
+    const sp = new URLSearchParams();
+    if (params?.session) sp.set('session', String(params.session));
+    if (params?.student) sp.set('student', String(params.student));
+    if (params?.status) sp.set('status', params.status);
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/attendance-records/${q ? `?${q}` : ''}`);
+  }
+
+  /** Bitta yozuvni yangilash */
+  async updateAttendanceRecord(
+    recordId: string | number,
+    data: { status?: 'in' | 'out'; student?: number; session?: number }
+  ) {
+    return this.request(`/attendance-records/${recordId}/update/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Bulk update — API da bulk yo'q; har bir yozuvni alohida PATCH qiladi.
+   * records: [{ id, status }] yoki [{ student_id, status }] (id bo'lsa afzal)
+   */
+  async updateAttendanceRecords(
+    _sessionId: string,
+    records: Array<{ id?: number; student_id?: number; status: 'in' | 'out' }>
+  ) {
+    const results = [];
+    for (const rec of records) {
+      if (rec.id != null) {
+        results.push(await this.updateAttendanceRecord(rec.id, { status: rec.status }));
+      }
+    }
+    return results;
+  }
+
+  // ——— Collections ———
+  async getCollections(params?: { floor?: number; page?: number }) {
+    const sp = new URLSearchParams();
+    if (params?.floor) sp.set('floor', String(params.floor));
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/collections/${q ? `?${q}` : ''}`);
+  }
+
+  async getCollection(collectionId: string | number) {
+    return this.request(`/collections/${collectionId}/`);
+  }
+
+  async createCollection(collectionData: {
+    title: string;
+    amount: number;
+    description?: string;
+    deadline?: string;
+    floor?: number;
+    leader?: number;
+  }) {
+    return this.request('/collections/create/', {
+      method: 'POST',
       body: JSON.stringify(collectionData),
     });
-
-    return this.handleResponse(response);
   }
 
-  async updateCollectionRecords(recordId: number, data: { status: string; collection: number; student: number }) {
-    const response = await fetch(`${API_ROOT}/collection-records/${recordId}/`, {
+  async updateCollectionRecords(
+    recordId: number,
+    data: { status: string; collection: number; student: number }
+  ) {
+    return this.request(`/collection-records/${recordId}/`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return this.handleResponse(response);
   }
 
-  async createCollectionRecord(data: { status: string; collection: number; student: number }) {
-    const response = await fetch(`${API_ROOT}/collection-records/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Requests
-  async getRequests() {
-    const response = await fetch(`${API_ROOT}/requests/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async createRequest(requestData: any) {
-    const response = await fetch(`${API_ROOT}/requests/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(requestData),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async updateRequest(requestId: string, requestData: any) {
-    const response = await fetch(`${API_ROOT}/requests/${requestId}/`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(requestData),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  // Announcements
-  async getAnnouncements() {
-    const response = await fetch(`${API_ROOT}/announcements/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async createAnnouncement(announcementData: any) {
-    const response = await fetch(`${API_ROOT}/announcements/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(announcementData),
-    });
-
-    return this.handleResponse(response);
-  }
-
-  // Leader Statistics
-  async getLeaderStatistics() {
-    const response = await fetch(`${API_ROOT}/statistic-for-leader/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Dashboard Data
-  async getDashboardData() {
-    const response = await fetch(`${API_ROOT}/floor-leader/dashboard/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Profile Management
-  async getProfile() {
-    const response = await fetch(`${API_ROOT}/profile/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-    return this.handleResponse(response);
-  }
-
-  async updateProfile(profileData: { first_name: string; last_name: string; phone?: string; email?: string; }) {
-    const response = await fetch(`${API_ROOT}/profile/update/`, {
-      method: 'PATCH',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(profileData),
-    });
-    return this.handleResponse(response);
-  }
-
-  async changePassword(passwordData: { old_password: string; new_password: string; }) {
-    const response = await fetch(`${API_ROOT}/change-password/`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(passwordData),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Floor Leader Management
-  async createFloorLeader(leaderData: {
-    user_info: {
-      username: string;
-      password: string;
-      role: string;
-      email: string;
-    };
-    floor_info: {
-      name: string;
-      gender: 'male' | 'female';
-    };
-    floor: number;
-    user: number;
+  async createCollectionRecord(data: {
+    status: string;
+    collection: number;
+    student: number;
   }) {
-    const response = await fetch(`${API_ROOT}/floor-leaders/`, {
+    return this.request('/collection-records/', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ——— Complaints (UI dagi "Requests") ———
+  async getRequests(params?: { status?: string; category?: string; page?: number }) {
+    return this.getComplaints(params);
+  }
+
+  async getComplaints(params?: { status?: string; category?: string; page?: number }) {
+    const sp = new URLSearchParams();
+    if (params?.status) sp.set('status', params.status);
+    if (params?.category) sp.set('category', params.category);
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/complaints/${q ? `?${q}` : ''}`);
+  }
+
+  async createRequest(requestData: {
+    title: string;
+    description: string;
+    category?: string;
+  }) {
+    return this.createComplaint(requestData);
+  }
+
+  async createComplaint(data: {
+    title: string;
+    description: string;
+    category?: string;
+  }) {
+    return this.request('/complaints/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateRequest(requestId: string | number, requestData: Record<string, unknown>) {
+    return this.request(`/complaints/${requestId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(requestData),
+    });
+  }
+
+  async updateComplaint(id: string | number, data: Record<string, unknown>) {
+    return this.request(`/complaints/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ——— Notifications (UI dagi "Announcements" o'qish) ———
+  async getAnnouncements() {
+    return this.getNotifications();
+  }
+
+  async getNotifications() {
+    return this.request('/notifications/');
+  }
+
+  async getUnreadCount() {
+    return this.request('/notifications/unread-count/');
+  }
+
+  async markNotificationAsRead(id: number) {
+    return this.request('/notifications/mark-read/', {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/mark-all-read/', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  }
+
+  /** Sardor e'lon yaratish — API da alohida announcements yo'q; task-for-leader ishlatiladi */
+  async createAnnouncement(announcementData: {
+    title?: string;
+    content?: string;
+    description?: string;
+    user?: number;
+  }) {
+    const description =
+      announcementData.description ||
+      [announcementData.title, announcementData.content].filter(Boolean).join('\n');
+    if (!announcementData.user) {
+      throw new Error("E'lon yaratish uchun user (leader) id kerak");
+    }
+    return this.request('/tasks-for-leaders/create/', {
+      method: 'POST',
+      body: JSON.stringify({
+        user: announcementData.user,
+        description,
+      }),
+    });
+  }
+
+  // ——— Duty schedules ———
+  async getDutySchedules(params?: { page?: number }) {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/duty-schedules/${q ? `?${q}` : ''}`);
+  }
+
+  async createDutySchedule(data: { date: string; floor: number; room: number }) {
+    return this.request('/duty-schedules/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDutySchedule(id: string | number, data: Record<string, unknown>) {
+    return this.request(`/duty-schedules/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDutySchedule(id: string | number) {
+    return this.request(`/duty-schedules/${id}/`, { method: 'DELETE' });
+  }
+
+  // ——— Floor leaders ———
+  async getFloorLeaders(params?: { floor?: number; page?: number }) {
+    const sp = new URLSearchParams();
+    if (params?.floor) sp.set('floor', String(params.floor));
+    if (params?.page) sp.set('page', String(params.page));
+    const q = sp.toString();
+    return this.request(`/floor-leaders/${q ? `?${q}` : ''}`);
+  }
+
+  async createFloorLeader(leaderData: Record<string, unknown>) {
+    return this.request('/floor-leaders/', {
+      method: 'POST',
       body: JSON.stringify(leaderData),
     });
-    return this.handleResponse(response);
   }
 
-  async getFloorLeaders() {
-    const response = await fetch(`${API_ROOT}/floor-leaders/`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
+  // ——— Tasks for leaders ———
+  async getTasksForLeaders() {
+    return this.request('/tasks-for-leaders/');
+  }
+
+  async updateTaskForLeader(id: number | string, data: Record<string, unknown>) {
+    return this.request(`/tasks-for-leaders/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     });
-    return this.handleResponse(response);
+  }
+
+  // ——— Floors / Rooms (read) ———
+  async getFloors() {
+    return this.request('/floors/');
+  }
+
+  async getRooms(floorId?: number | string) {
+    const q = floorId != null ? `?floor=${floorId}` : '';
+    return this.request(`/rooms/${q}`);
   }
 }
 

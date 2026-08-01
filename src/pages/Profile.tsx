@@ -133,45 +133,25 @@ const Profile: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Changing password...');
-
-      // Call API to change password
-      const result = await apiService.changePassword({
+      await apiService.changePassword({
         old_password: passwordData.currentPassword,
         new_password: passwordData.newPassword
       });
 
-      console.log('Password change result:', result);
-
-      // Clear password fields
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
-
-      // Clear any previous errors
       setPasswordErrors({});
-
       setShowPasswordModal(false);
-      toast.success('Parol muvaffaqiyatli o\'zgartirildi');
+      toast.success("Parol muvaffaqiyatli o'zgartirildi");
     } catch (error) {
-      console.error('Password change error:', error);
-
-      // Handle specific error messages
-      let errorMessage = 'Parolni o\'zgartirishda xatolik yuz berdi';
-
-      if (error instanceof Error) {
-        if (error.message.includes('old_password') || error.message.includes('joriy parol') || error.message.includes('current password')) {
-          errorMessage = 'Joriy parol noto\'g\'ri kiritilgan';
-          setPasswordErrors({ currentPassword: errorMessage });
-        } else if (error.message.includes('new_password') || error.message.includes('yangi parol')) {
-          errorMessage = 'Yangi parol talablarga mos kelmaydi';
-          setPasswordErrors({ newPassword: errorMessage });
-        } else {
-          errorMessage = error.message;
-        }
-      }
+      // API da change-password endpoint yo'q — aniq xabar
+      let errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Parolni o'zgartirishda xatolik yuz berdi";
 
       toast.error(errorMessage);
     } finally {

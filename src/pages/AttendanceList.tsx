@@ -37,43 +37,78 @@ const AttendanceList: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch attendance records and group them
+  // Sessiyalar + yozuvlarni birlashtirish
   const fetchAttendanceData = async () => {
     setIsLoading(true);
     try {
-      const result = await apiService.getAttendanceRecords();
-      const records: AttendanceRecord[] = result.results || (Array.isArray(result) ? result : []);
+      const [sessionsRes, recordsRes] = await Promise.all([
+        apiService.getAttendanceSessions().catch(() => ({ results: [] })),
+        apiService.getAttendanceRecords().catch(() => ({ results: [] })),
+      ]);
 
-      // Group by session ID
+      const sessionsList = Array.isArray(sessionsRes)
+        ? sessionsRes
+        : ((sessionsRes as { results?: Array<{
+            id: number;
+            date?: string;
+            floor_name?: string;
+            records?: AttendanceRecord[];
+          }> })?.results || []);
+
+      const records: AttendanceRecord[] = Array.isArray(recordsRes)
+        ? (recordsRes as AttendanceRecord[])
+        : ((recordsRes as { results?: AttendanceRecord[] })?.results || []);
+
       const sessionsMap: Record<number, GroupedSession> = {};
-      
-      records.forEach(record => {
+
+      // Avval session list
+      sessionsList.forEach((s) => {
+        const recs = (s.records || []) as AttendanceRecord[];
+        sessionsMap[s.id] = {
+          id: s.id,
+          date: s.date || '',
+          floorName: s.floor_name || "Noma'lum qavat",
+          present: 0,
+          absent: 0,
+          total: 0,
+          records: recs,
+        };
+      });
+
+      // Records bilan to'ldirish
+      records.forEach((record) => {
         const sessionId = record.session;
         if (!sessionsMap[sessionId]) {
           sessionsMap[sessionId] = {
             id: sessionId,
             date: record.session_date,
-            floorName: record.floor_name || 'Noma\'lum qavat',
+            floorName: record.floor_name || "Noma'lum qavat",
             present: 0,
             absent: 0,
             total: 0,
-            records: []
+            records: [],
           };
         }
-        
         sessionsMap[sessionId].records.push(record);
-        sessionsMap[sessionId].total++;
-        
-        if (record.status.toLowerCase() === 'in' || record.status === 'Hozir' || record.status === 'Bor') {
-          sessionsMap[sessionId].present++;
-        } else if (record.status.toLowerCase() === 'out' || record.status === 'Yo\'q') {
-          sessionsMap[sessionId].absent++;
-        }
       });
 
-      // Convert to array and sort by date (most recent first)
-      const sessions = Object.values(sessionsMap).sort((a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id
+      Object.values(sessionsMap).forEach((session) => {
+        session.total = session.records.length;
+        session.present = 0;
+        session.absent = 0;
+        session.records.forEach((record) => {
+          const st = (record.status || '').toLowerCase();
+          if (st === 'in' || record.status === 'Hozir' || record.status === 'Bor') {
+            session.present++;
+          } else if (st === 'out' || record.status === "Yo'q") {
+            session.absent++;
+          }
+        });
+      });
+
+      const sessions = Object.values(sessionsMap).sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id
       );
 
       setGroupedSessions(sessions);

@@ -16,9 +16,10 @@ type AnnouncementFormData = z.infer<typeof announcementSchema>;
 
 interface AnnouncementFormProps {
   onClose: () => void;
+  onSubmit?: (data: AnnouncementFormData) => void | Promise<void>;
 }
 
-const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
+const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: onSubmitProp }) => {
   const { dispatch } = useApp();
   
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<AnnouncementFormData>({
@@ -27,6 +28,10 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose }) => {
 
   const onSubmit = async (data: AnnouncementFormData) => {
     try {
+      if (onSubmitProp) {
+        await onSubmitProp(data);
+        return;
+      }
       dispatch({
         type: 'ADD_ANNOUNCEMENT',
         payload: data
