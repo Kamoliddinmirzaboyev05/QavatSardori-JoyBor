@@ -33,6 +33,26 @@ const Login: React.FC = () => {
     }
   });
 
+  const clearSession = () => {
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('user_role');
+  };
+
+  const isFloorLeaderRole = (role?: string | null): boolean => {
+    if (!role) return false;
+    const r = role.toLowerCase().replace(/[_\s-]/g, '');
+    return (
+      r === 'floorleader' ||
+      r === 'sardor' ||
+      r === 'qavatsardori' ||
+      r === 'qavatsardor' ||
+      r === 'leader' ||
+      r.includes('sardor') ||
+      r.includes('floorleader')
+    );
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError(null);
@@ -43,60 +63,73 @@ const Login: React.FC = () => {
       sessionStorage.setItem('access_token', tokens.access);
       sessionStorage.setItem('refresh_token', tokens.refresh);
 
-      // /me/ → UserMe (flat); JWT odatda role qaytarmaydi
-      let userDetails: User = {
-        id: '1',
-        name: data.username,
-        lastName: '',
-        role: 'qavat_sardori',
+      const profile = (await apiService.getProfile()) as {
+        id?: number;
+        username?: string;
+        first_name?: string;
+        last_name?: string;
+        role?: string;
+        floor?: number;
+        floor_id?: number;
+        user?: { id?: number; username?: string; last_name?: string; role?: string };
       };
 
-      try {
-        const profile = (await apiService.getProfile()) as {
-          id?: number;
-          username?: string;
-          first_name?: string;
-          last_name?: string;
-          role?: string;
-          user?: { id?: number; username?: string; last_name?: string; role?: string };
-        };
-
-        const role = profile.role || profile.user?.role || 'sardor';
-        sessionStorage.setItem('user_role', role);
-
-        const leadersRes = await apiService.getFloorLeaders();
-        const leadersList = Array.isArray(leadersRes)
-          ? leadersRes
-          : ((leadersRes as { results?: unknown[] })?.results || []);
-        const profileId = profile.id ?? profile.user?.id;
-        const floorLeader = (leadersList as Array<{
-          id?: number;
-          floor?: number;
-          user?: number;
-          user_info?: { id?: number; username?: string; last_name?: string };
-        }>).find(
-          (l) =>
-            l.user_info?.username === data.username ||
-            l.user_info?.username === profile.username ||
-            l.user === profileId ||
-            l.user_info?.id === profileId
+      const role = profile.role || profile.user?.role || tokens.role || '';
+      // Rol aniq bo'lsa va qavat sardori bo'lmasa — darhol to'xtat
+      if (role && !isFloorLeaderRole(role)) {
+        clearSession();
+        throw new Error(
+          "Bu hisob qavat sardori emas. Faqat qavat sardori login/paroli bilan kiring."
         );
-
-        userDetails = {
-          id: String(profileId || floorLeader?.user || '1'),
-          name: profile.first_name || profile.username || data.username,
-          lastName: profile.last_name || profile.user?.last_name || '',
-          role: role === 'sardor' ? 'qavat_sardori' : role,
-          floor: floorLeader?.floor,
-          floorLeaderId: floorLeader?.id,
-        };
-      } catch {
-        sessionStorage.setItem('user_role', 'sardor');
       }
+
+      // Haqiqiy ruxsat: /floor-leader/dashboard/ (admin/token bo'lsa 403)
+      // getFloorLeaders() admin endpoint — sardor uchun 403 beradi, chaqirilmaydi
+      let floorId: number | undefined =
+        typeof profile.floor === 'number'
+          ? profile.floor
+          : typeof profile.floor_id === 'number'
+            ? profile.floor_id
+            : undefined;
+
+      try {
+        const dash = (await apiService.getDashboardData()) as {
+          floor?: { id?: number; name?: string };
+        };
+        if (dash?.floor?.id != null) floorId = dash.floor.id;
+      } catch (dashErr) {
+        clearSession();
+        const msg =
+          dashErr instanceof Error ? dashErr.message : 'Dashboardga ruxsat yo‘q';
+        if (
+          msg.toLowerCase().includes('sardori') ||
+          msg.toLowerCase().includes('403') ||
+          msg.toLowerCase().includes('permission') ||
+          msg.toLowerCase().includes('ruxsat')
+        ) {
+          throw new Error(
+            "Siz qavat sardori emassiz. Admin yoki boshqa rol bilan bu ilovaga kirmang."
+          );
+        }
+        throw new Error(msg);
+      }
+
+      const profileId = profile.id ?? profile.user?.id;
+      const normalizedRole = isFloorLeaderRole(role) ? role : 'qavat_sardori';
+      sessionStorage.setItem('user_role', normalizedRole);
+
+      const userDetails: User = {
+        id: String(profileId || '1'),
+        name: profile.first_name || profile.username || data.username,
+        lastName: profile.last_name || profile.user?.last_name || '',
+        role: normalizedRole === 'sardor' ? 'qavat_sardori' : normalizedRole,
+        floor: floorId,
+      };
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });
       toast.success('Muvaffaqiyatli kirdingiz!');
     } catch (err) {
+      clearSession();
       const message = err instanceof Error ? err.message : 'Kirishda xatolik yuz berdi';
       setError(message);
       toast.error(message);

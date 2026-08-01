@@ -224,16 +224,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     dispatch({ type: 'UPDATE_USER', payload: user });
   };
 
-  // Load initial data from storage
+  // Load initial data from storage + qavat sardori ruxsatini tekshir
   useEffect(() => {
     const storedData = loadFromStorage();
     const accessToken = sessionStorage.getItem('access_token');
-    const isAuthenticated = !!accessToken;
+    if (!accessToken) return;
 
-    if (isAuthenticated) {
-      // Load data from storage if authenticated
-      dispatch({ type: 'LOAD_DATA', payload: { ...storedData, isAuthenticated } });
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        await apiService.getDashboardData();
+        if (cancelled) return;
+        dispatch({
+          type: 'LOAD_DATA',
+          payload: { ...storedData, isAuthenticated: true },
+        });
+      } catch {
+        // Token bor lekin sardor emas yoki muddati o'tgan
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('user_role');
+        if (!cancelled) {
+          dispatch({ type: 'LOGOUT' });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Fetch initial data from API when authenticated
@@ -242,41 +261,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const fetchStudents = async () => {
         try {
           const response = await apiService.getStudents();
-          const studentsData = response.results || response;
-          if (Array.isArray(studentsData)) {
-            // Map API response to Student type
-            const students: Student[] = studentsData.map((s: {
-              id?: number | string;
-              first_name?: string;
-              name?: string;
-              last_name?: string;
-              room_name?: string;
-              room?: number | string | { id?: number; name?: string };
-              phone?: string;
-              accepted_date?: string;
-              created_at?: string;
-            }) => ({
-              id: s.id?.toString() || generateId(),
-              name: s.name || s.first_name || '',
-              lastName: s.last_name || '',
-              room:
-                s.room_name ||
-                (typeof s.room === 'object' && s.room
-                  ? s.room.name || String(s.room.id || '')
-                  : s.room?.toString() || '') ||
-                '',
-              phone: s.phone || '',
-              createdAt: s.accepted_date || s.created_at || new Date().toISOString(),
-              isDeleted: false,
-            }));
-            
+          const studentsData = Array.isArray(response)
+            ? response
+            : response &&
+                typeof response === 'object' &&
+                Array.isArray((response as { results?: unknown }).results)
+              ? (response as { results: unknown[] }).results
+              : [];
+          if (Array.isArray(studentsData) && studentsData.length >= 0) {
+            const students: Student[] = studentsData.map((raw) => {
+              const s = raw as {
+                id?: number | string;
+                first_name?: string;
+                name?: string;
+                last_name?: string;
+                room_name?: string;
+                room?: number | string | { id?: number; name?: string };
+                phone?: string;
+                accepted_date?: string;
+                created_at?: string;
+              };
+              return {
+                id: s.id?.toString() || generateId(),
+                name: s.name || s.first_name || '',
+                lastName: s.last_name || '',
+                room:
+                  s.room_name ||
+                  (typeof s.room === 'object' && s.room
+                    ? s.room.name || String(s.room.id || '')
+                    : s.room?.toString() || '') ||
+                  '',
+                phone: s.phone || '',
+                createdAt: s.accepted_date || s.created_at || new Date().toISOString(),
+                isDeleted: false,
+              };
+            });
+
             dispatch({ type: 'LOAD_DATA', payload: { students } });
           }
         } catch (error) {
-          console.error('Error fetching students:', error);
+          // 403/role xatolari console'da shovqin qilmasin
+          if (error instanceof Error && !error.message.includes('sardori')) {
+            console.error('Error fetching students:', error);
+          }
         }
       };
-      
+
       fetchStudents();
     }
   }, [state.isAuthenticated]);

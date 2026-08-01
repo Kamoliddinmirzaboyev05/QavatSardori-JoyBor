@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Clock, AlertCircle, User } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { useApp } from '../context/AppContext';

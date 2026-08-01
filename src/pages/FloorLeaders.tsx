@@ -40,10 +40,21 @@ const FloorLeaders: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await apiService.getFloorLeaders();
-      setLeaders(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data)
+        ? data
+        : data && typeof data === 'object' && Array.isArray((data as { results?: FloorLeader[] }).results)
+          ? (data as { results: FloorLeader[] }).results
+          : [];
+      setLeaders(list);
     } catch (error) {
-      console.error('Error fetching leaders:', error);
-      toast.error('Qavat sardorlarini yuklashda xatolik');
+      const msg = error instanceof Error ? error.message : 'Yuklash xatosi';
+      // Admin-only endpoint — sardor 403 oladi
+      if (msg.toLowerCase().includes('sardori') || msg.includes('403')) {
+        toast.error('Bu ro‘yxat faqat admin uchun. Siz qavat sardorisisiz.');
+      } else {
+        toast.error(msg || 'Qavat sardorlarini yuklashda xatolik');
+      }
+      setLeaders([]);
     } finally {
       setIsLoading(false);
     }

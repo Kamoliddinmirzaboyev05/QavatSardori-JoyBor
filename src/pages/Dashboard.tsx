@@ -76,17 +76,39 @@ const Dashboard: React.FC = () => {
   }
 
   if (error && !dashboardData) {
+    const isForbidden =
+      error.toLowerCase().includes('sardori') ||
+      error.toLowerCase().includes('ruxsat') ||
+      error.toLowerCase().includes('403') ||
+      error.toLowerCase().includes('permission');
     return (
       <div className="p-4 flex flex-col items-center justify-center min-h-[60vh] text-center">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-lg font-bold text-gray-900 mb-2">Xatolik yuz berdi</h3>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <button 
-          onClick={fetchDashboardData}
-          className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors"
-        >
-          Qayta urinish
-        </button>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">
+          {isForbidden ? 'Ruxsat yo‘q' : 'Xatolik yuz berdi'}
+        </h3>
+        <p className="text-gray-600 mb-6 max-w-sm">{error}</p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <button
+            onClick={fetchDashboardData}
+            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors"
+          >
+            Qayta urinish
+          </button>
+          {isForbidden && (
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('access_token');
+                sessionStorage.removeItem('refresh_token');
+                sessionStorage.removeItem('user_role');
+                window.location.href = '/login';
+              }}
+              className="px-6 py-2 border border-gray-300 text-gray-800 rounded-full font-medium hover:bg-gray-50 transition-colors"
+            >
+              Boshqa hisob bilan kirish
+            </button>
+          )}
+        </div>
       </div>
     );
   }
