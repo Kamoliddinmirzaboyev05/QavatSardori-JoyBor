@@ -24,7 +24,7 @@ const Header: React.FC = () => {
   return (
     <>
       <motion.header 
-        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40"
+        className="fixed top-0 left-0 right-0 bg-white border-b border-surface-200 z-40"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.3 }}
@@ -36,11 +36,11 @@ const Header: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
           >
-            <div className="w-8 h-8 bg-gray-900 rounded-[5px] flex items-center justify-center">
+            <div className="w-8 h-8 bg-surface-900 rounded-[5px] flex items-center justify-center">
               <span className="text-white text-xs font-black">QS</span>
             </div>
             <div>
-              <h1 className="text-sm font-black text-gray-900 uppercase tracking-tighter">Qavat Sardori</h1>
+              <h1 className="text-sm font-black text-surface-900 uppercase tracking-tighter">Qavat Sardori</h1>
             </div>
           </motion.div>
 
@@ -55,11 +55,11 @@ const Header: React.FC = () => {
             <div className="relative">
               <motion.button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-[5px] hover:bg-gray-100 transition-colors"
+                className="flex items-center space-x-2 p-2 rounded-[5px] hover:bg-surface-100 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 bg-surface-900 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-white text-xs font-bold uppercase">
                     {state.user?.name?.charAt(0) || 'S'}
                   </span>
@@ -68,28 +68,28 @@ const Header: React.FC = () => {
                   animate={{ rotate: showUserMenu ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4 text-surface-500" />
                 </motion.div>
               </motion.button>
 
               <AnimatePresence>
                 {showUserMenu && (
                   <motion.div 
-                    className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-[5px] shadow-lg z-50"
+                    className="absolute right-0 mt-2 w-52 bg-white border border-surface-200 rounded-[5px] shadow-lg z-50"
                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="p-3 border-b border-gray-200">
-                      <p className="font-medium text-gray-900">
+                    <div className="p-3 border-b border-surface-200">
+                      <p className="font-medium text-surface-900">
                         {state.user?.name || 'Sardor'}
                       </p>
-                      <p className="text-sm text-gray-600">Qavat Sardori</p>
+                      <p className="text-sm text-surface-600">Qavat Sardori</p>
                     </div>
                     <motion.button
                       onClick={handleProfileClick}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group"
+                      className="w-full flex items-center justify-between px-3 py-2 text-left text-surface-700 hover:bg-brand-50 hover:text-brand-700 transition-colors group"
                       whileHover={{ x: 4 }}
                     >
                       <div className="flex items-center space-x-2">
@@ -108,7 +108,7 @@ const Header: React.FC = () => {
                     </motion.button>
                     <motion.button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center space-x-2 px-3 py-2 text-left text-danger-600 hover:bg-danger-50 transition-colors"
                       whileHover={{ x: 4 }}
                     >
                       <LogOut className="w-4 h-4" />

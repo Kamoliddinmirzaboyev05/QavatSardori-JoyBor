@@ -88,7 +88,6 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
       }
       onClose();
     } catch (error) {
-      console.error('Error saving student:', error);
       toast.error('Talabani saqlashda xatolik yuz berdi');
     }
   };
@@ -96,13 +95,13 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-lg sm:rounded-[5px] w-full max-w-md max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-4 border-b border-surface-200">
+          <h2 className="text-lg font-semibold text-surface-900">
             {student ? 'Talabani tahrirlash' : 'Talaba qo\'shish'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-surface-400 hover:text-surface-600"
           >
             <X className="w-6 h-6" />
           </button>
@@ -111,63 +110,63 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-700 mb-1">
                 Ismi
               </label>
               <input
                 {...register('name')}
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 placeholder="Ismi"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-danger-600">{errors.name.message}</p>
               )}
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-surface-700 mb-1">
                 Familiyasi
               </label>
               <input
                 {...register('lastName')}
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 placeholder="Familiyasi"
               />
               {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                <p className="mt-1 text-sm text-danger-600">{errors.lastName.message}</p>
               )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-700 mb-1">
               Xona raqami
             </label>
             <input
               {...register('room')}
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               placeholder="masalan, 101"
             />
             {errors.room && (
-              <p className="mt-1 text-sm text-red-600">{errors.room.message}</p>
+              <p className="mt-1 text-sm text-danger-600">{errors.room.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-700 mb-1">
               Telefon raqami
             </label>
             <input
               {...register('phone')}
               type="tel"
-              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               placeholder="+998901234567"
             />
             {errors.phone && (
-              <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+              <p className="mt-1 text-sm text-danger-600">{errors.phone.message}</p>
             )}
           </div>
 

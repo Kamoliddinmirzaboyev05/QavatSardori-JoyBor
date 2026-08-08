@@ -177,7 +177,7 @@ const Login: React.FC = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+      className="min-h-screen bg-surface-50 flex items-center justify-center p-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -186,20 +186,20 @@ const Login: React.FC = () => {
         className="w-full max-w-md"
         variants={cardVariants}
       >
-        <Card className="p-8 shadow-sm border border-gray-200 bg-white">
+        <Card className="p-8 shadow-sm border border-surface-200 bg-white">
           <motion.div
             className="text-center mb-10"
             variants={itemVariants}
           >
             <motion.div
-              className="bg-gray-900 w-16 h-16 rounded-[5px] flex items-center justify-center mx-auto mb-6"
+              className="bg-surface-900 w-16 h-16 rounded-[5px] flex items-center justify-center mx-auto mb-6"
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring" as const, stiffness: 400 }}
             >
               <LogIn className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2 uppercase tracking-tight">Qavat sardori</h1>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tizimga kirish</p>
+            <h1 className="text-2xl font-bold text-surface-900 mb-2 uppercase tracking-tight">Qavat sardori</h1>
+            <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Tizimga kirish</p>
           </motion.div>
 
           <motion.form
@@ -208,18 +208,18 @@ const Login: React.FC = () => {
             variants={itemVariants}
           >
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+              <label className="block text-[10px] font-bold text-surface-500 uppercase tracking-widest mb-2">
                 Foydalanuvchi nomi
               </label>
               <input
                 {...register('username')}
                 type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-sm"
+                className="w-full px-4 py-3 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-surface-900 focus:border-surface-900 transition-all duration-200 text-sm"
                 placeholder="Foydalanuvchi nomi"
               />
               {errors.username && (
                 <motion.p
-                  className="text-red-600 text-[10px] font-bold uppercase mt-1"
+                  className="text-danger-600 text-[10px] font-bold uppercase mt-1"
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -229,27 +229,27 @@ const Login: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+              <label className="block text-[10px] font-bold text-surface-500 uppercase tracking-widest mb-2">
                 Parol
               </label>
               <div className="relative">
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-sm"
+                  className="w-full px-4 py-3 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-surface-900 focus:border-surface-900 transition-all duration-200 text-sm"
                   placeholder="Parol"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && (
                 <motion.p
-                  className="text-red-600 text-[10px] font-bold uppercase mt-1"
+                  className="text-danger-600 text-[10px] font-bold uppercase mt-1"
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -260,17 +260,17 @@ const Login: React.FC = () => {
 
             {error && (
               <motion.div
-                className="p-3 bg-red-50 border border-red-100 rounded-[5px]"
+                className="p-3 bg-danger-50 border border-danger-100 rounded-[5px]"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                <p className="text-[10px] font-bold text-red-600 uppercase text-center">{error}</p>
+                <p className="text-[10px] font-bold text-danger-600 uppercase text-center">{error}</p>
               </motion.div>
             )}
 
             <Button
               type="submit"
-              className="w-full py-3 bg-gray-900 hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-[5px] transition-all"
+              className="w-full py-3 bg-surface-900 hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-[5px] transition-all"
               isLoading={isLoading}
             >
               Kirish

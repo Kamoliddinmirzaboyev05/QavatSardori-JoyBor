@@ -84,8 +84,8 @@ const Announcements: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">E'lonlar</h2>
-          <p className="text-sm text-gray-600">
+          <h2 className="text-xl font-bold text-surface-900">E'lonlar</h2>
+          <p className="text-sm text-surface-600">
             Bildirishnomalar va sardor vazifalari (API)
           </p>
         </div>
@@ -112,7 +112,7 @@ const Announcements: React.FC = () => {
       <div className="space-y-4">
         {loading ? (
           <Card className="text-center py-8">
-            <RefreshCw className="w-8 h-8 text-gray-400 mx-auto animate-spin" />
+            <RefreshCw className="w-8 h-8 text-surface-400 mx-auto animate-spin" />
           </Card>
         ) : items.length > 0 ? (
           items.map((announcement) => (
@@ -120,24 +120,24 @@ const Announcements: React.FC = () => {
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   {announcement.type === 'task' ? (
-                    <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
-                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <div className="flex items-center justify-center w-10 h-10 bg-danger-100 rounded-full">
+                      <AlertTriangle className="w-5 h-5 text-danger-600" />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-                      <Megaphone className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center justify-center w-10 h-10 bg-brand-100 rounded-full">
+                      <Megaphone className="w-5 h-5 text-brand-600" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">
+                  <h3 className="font-semibold text-surface-900 mb-1">
                     {announcement.title || (announcement.type === 'task' ? 'Vazifa' : "E'lon")}
                   </h3>
-                  <p className="text-gray-700 mb-3">
+                  <p className="text-surface-700 mb-3">
                     {announcement.message || announcement.content || announcement.description}
                   </p>
                   {announcement.created_at && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-surface-500">
                       {formatDateTime(announcement.created_at)}
                     </p>
                   )}
@@ -147,8 +147,8 @@ const Announcements: React.FC = () => {
           ))
         ) : (
           <Card className="text-center py-8">
-            <Megaphone className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Hali e'lonlar yo'q</p>
+            <Megaphone className="w-12 h-12 text-surface-400 mx-auto mb-4" />
+            <p className="text-surface-500">Hali e'lonlar yo'q</p>
           </Card>
         )}
       </div>

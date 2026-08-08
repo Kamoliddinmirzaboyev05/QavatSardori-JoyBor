@@ -46,7 +46,6 @@ const PWAInstallButton: React.FC = () => {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
     }
     
     setDeferredPrompt(null);
@@ -60,7 +59,7 @@ const PWAInstallButton: React.FC = () => {
   return (
     <button
       onClick={handleInstallClick}
-      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-[5px] transition-colors"
+      className="p-2 text-surface-600 hover:text-brand-600 hover:bg-brand-50 rounded-[5px] transition-colors"
       title="Ilovani o'rnatish"
     >
       <Download className="w-5 h-5" />

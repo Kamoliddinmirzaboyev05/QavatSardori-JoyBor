@@ -116,7 +116,6 @@ const Profile: React.FC = () => {
 
       toast.success('Profil muvaffaqiyatli yangilandi');
     } catch (error) {
-      console.error('Profile update error:', error);
       toast.error(error instanceof Error ? error.message : 'Profilni yangilashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
@@ -185,12 +184,12 @@ const Profile: React.FC = () => {
         animate="visible"
       >
         <motion.div variants={itemVariants} className="flex items-center space-x-3">
-          <div className="bg-blue-100 p-3 rounded-full">
-            <User className="w-6 h-6 text-blue-600" />
+          <div className="bg-brand-100 p-3 rounded-full">
+            <User className="w-6 h-6 text-brand-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Profil</h2>
-            <p className="text-gray-600">Shaxsiy ma'lumotlaringizni boshqaring</p>
+            <h2 className="text-2xl font-bold text-surface-900">Profil</h2>
+            <p className="text-surface-600">Shaxsiy ma'lumotlaringizni boshqaring</p>
           </div>
         </motion.div>
 
@@ -198,17 +197,17 @@ const Profile: React.FC = () => {
         <motion.div variants={itemVariants}>
           <Card className="p-6">
             <div className="flex items-center space-x-4 mb-6">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 bg-brand-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-2xl font-medium">
                   {state.user?.name?.charAt(0) || 'S'}
                 </span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-surface-900">
                   {state.user?.name || 'Sardor'} {state.user?.lastName || ''}
                 </h3>
-                <p className="text-gray-600">Qavat Sardori</p>
-                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                <p className="text-surface-600">Qavat Sardori</p>
+                <div className="flex items-center space-x-4 mt-2 text-sm text-surface-500">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" />
                     <span>Ro'yxatdan o'tgan: 2024</span>
@@ -218,19 +217,19 @@ const Profile: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-[5px] p-4">
+              <div className="bg-surface-50 rounded-[5px] p-4">
                 <div className="flex items-center space-x-2 mb-2">
-                  <Phone className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">Telefon</span>
+                  <Phone className="w-4 h-4 text-surface-600" />
+                  <span className="text-sm font-medium text-surface-700">Telefon</span>
                 </div>
-                <p className="text-gray-900">{formData.phone}</p>
+                <p className="text-surface-900">{formData.phone}</p>
               </div>
-              <div className="bg-gray-50 rounded-[5px] p-4">
+              <div className="bg-surface-50 rounded-[5px] p-4">
                 <div className="flex items-center space-x-2 mb-2">
-                  <Mail className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">Email</span>
+                  <Mail className="w-4 h-4 text-surface-600" />
+                  <span className="text-sm font-medium text-surface-700">Email</span>
                 </div>
-                <p className="text-gray-900">{formData.email}</p>
+                <p className="text-surface-900">{formData.email}</p>
               </div>
             </div>
           </Card>
@@ -241,7 +240,7 @@ const Profile: React.FC = () => {
           <Card className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <h3 className="text-lg font-semibold text-surface-900 flex items-center">
                   <Edit className="w-5 h-5 mr-2" />
                   Shaxsiy ma'lumotlarni tahrirlash
                 </h3>
@@ -249,63 +248,63 @@ const Profile: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Ism *
                   </label>
                   <input
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.firstName ? 'border-danger-500' : 'border-surface-300'
                       }`}
                     placeholder="Ismingizni kiriting"
                   />
                   {errors.firstName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                    <p className="text-danger-500 text-sm mt-1">{errors.firstName}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Familiya *
                   </label>
                   <input
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.lastName ? 'border-danger-500' : 'border-surface-300'
                       }`}
                     placeholder="Familiyangizni kiriting"
                   />
                   {errors.lastName && (
-                    <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                    <p className="text-danger-500 text-sm mt-1">{errors.lastName}</p>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Telefon
                   </label>
                   <input
                     type="text"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Telefon raqamingizni kiriting"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Email
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="Email manzilingizni kiriting"
                   />
                 </div>
@@ -367,7 +366,7 @@ const Profile: React.FC = () => {
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <h2 className="text-xl font-semibold text-surface-900 flex items-center">
                   <Lock className="w-5 h-5 mr-2" />
                   Parolni o'zgartirish
                 </h2>
@@ -384,7 +383,7 @@ const Profile: React.FC = () => {
                     }
                   }}
                   disabled={isLoading}
-                  className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                  className="text-surface-400 hover:text-surface-600 transition-colors disabled:opacity-50"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -394,7 +393,7 @@ const Profile: React.FC = () => {
 
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Joriy parol *
                   </label>
                   <div className="relative">
@@ -402,25 +401,25 @@ const Profile: React.FC = () => {
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordData.currentPassword}
                       onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.currentPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500 ${passwordErrors.currentPassword ? 'border-danger-500' : 'border-surface-300'
                         }`}
                       placeholder="Joriy parolingizni kiriting"
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-surface-400 hover:text-surface-600"
                     >
                       {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {passwordErrors.currentPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
+                    <p className="text-danger-500 text-sm mt-1">{passwordErrors.currentPassword}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Yangi parol *
                   </label>
                   <div className="relative">
@@ -428,25 +427,25 @@ const Profile: React.FC = () => {
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordData.newPassword}
                       onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.newPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500 ${passwordErrors.newPassword ? 'border-danger-500' : 'border-surface-300'
                         }`}
                       placeholder="Yangi parolni kiriting"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-surface-400 hover:text-surface-600"
                     >
                       {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {passwordErrors.newPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.newPassword}</p>
+                    <p className="text-danger-500 text-sm mt-1">{passwordErrors.newPassword}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-surface-700 mb-2">
                     Yangi parolni tasdiqlang *
                   </label>
                   <div className="relative">
@@ -454,20 +453,20 @@ const Profile: React.FC = () => {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordData.confirmPassword}
                       onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 pr-10 border rounded-[5px] focus:outline-none focus:ring-2 focus:ring-brand-500 ${passwordErrors.confirmPassword ? 'border-danger-500' : 'border-surface-300'
                         }`}
                       placeholder="Yangi parolni qayta kiriting"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-surface-400 hover:text-surface-600"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {passwordErrors.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
+                    <p className="text-danger-500 text-sm mt-1">{passwordErrors.confirmPassword}</p>
                   )}
                 </div>
 

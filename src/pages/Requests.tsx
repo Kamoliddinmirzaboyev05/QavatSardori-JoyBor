@@ -68,26 +68,26 @@ const Requests: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle className="w-5 h-5 text-danger-500" />;
       case 'in_progress':
-        return <Clock className="w-5 h-5 text-orange-500" />;
+        return <Clock className="w-5 h-5 text-warning-500" />;
       case 'resolved':
-        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+        return <CheckCircle className="w-5 h-5 text-success-500" />;
       default:
-        return <MessageCircle className="w-5 h-5 text-gray-500" />;
+        return <MessageCircle className="w-5 h-5 text-surface-500" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-danger-600 bg-danger-50 border-danger-200';
       case 'in_progress':
-        return 'text-orange-600 bg-orange-50 border-orange-200';
+        return 'text-warning-600 bg-warning-50 border-warning-200';
       case 'resolved':
-        return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        return 'text-success-600 bg-success-50 border-success-200';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'text-surface-600 bg-surface-50 border-surface-200';
     }
   };
 
@@ -97,8 +97,8 @@ const Requests: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">So'rovlar / Shikoyatlar</h2>
-          <p className="text-sm text-gray-600">Talabalar shikoyatlarini boshqarish (API)</p>
+          <h2 className="text-xl font-bold text-surface-900">So'rovlar / Shikoyatlar</h2>
+          <p className="text-sm text-surface-600">Talabalar shikoyatlarini boshqarish (API)</p>
         </div>
         <Button size="sm" variant="secondary" onClick={load}>
           <RefreshCw className={clsx('w-4 h-4', loading && 'animate-spin')} />
@@ -114,8 +114,8 @@ const Requests: React.FC = () => {
               className={clsx(
                 'flex flex-col items-center p-3 rounded-[5px] transition-colors',
                 selectedStatus === status
-                  ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                  : 'bg-gray-50 text-gray-600 border-2 border-transparent hover:bg-gray-100'
+                  ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
+                  : 'bg-surface-50 text-surface-600 border-2 border-transparent hover:bg-surface-100'
               )}
             >
               <span className="text-xs capitalize text-center">
@@ -131,8 +131,8 @@ const Requests: React.FC = () => {
       <div className="space-y-3">
         {loading ? (
           <Card className="text-center py-8">
-            <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin" />
-            <p className="text-gray-500">Yuklanmoqda...</p>
+            <RefreshCw className="w-8 h-8 text-surface-400 mx-auto mb-2 animate-spin" />
+            <p className="text-surface-500">Yuklanmoqda...</p>
           </Card>
         ) : complaints.length > 0 ? (
           complaints.map((request) => (
@@ -141,16 +141,16 @@ const Requests: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     {getStatusIcon(request.status)}
-                    <h3 className="font-semibold text-gray-900">{request.title}</h3>
+                    <h3 className="font-semibold text-surface-900">{request.title}</h3>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{request.description}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-surface-600 mb-2">{request.description}</p>
+                  <p className="text-xs text-surface-500">
                     Kimdan: {request.student_name || 'Noma\'lum'}
                     {request.created_at ? ` • ${formatDateTime(request.created_at)}` : ''}
                     {request.category ? ` • ${request.category}` : ''}
                   </p>
                   {request.admin_response && (
-                    <p className="text-xs text-blue-700 mt-2">Javob: {request.admin_response}</p>
+                    <p className="text-xs text-brand-700 mt-2">Javob: {request.admin_response}</p>
                   )}
                 </div>
               </div>
@@ -192,9 +192,9 @@ const Requests: React.FC = () => {
           ))
         ) : (
           <Card className="text-center py-8">
-            <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">So'rovlar topilmadi</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <MessageCircle className="w-12 h-12 text-surface-400 mx-auto mb-4" />
+            <p className="text-surface-500">So'rovlar topilmadi</p>
+            <p className="text-sm text-surface-400 mt-1">
               Talabalar shikoyat yuborganda shu yerda ko'rinadi
             </p>
           </Card>

@@ -7,7 +7,7 @@ import Header from './Header';
 const Layout: React.FC = () => {
   return (
     <motion.div 
-      className="min-h-screen bg-gray-50 pb-20"
+      className="min-h-screen bg-surface-50 pb-20"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}

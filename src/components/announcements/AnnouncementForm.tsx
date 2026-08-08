@@ -38,16 +38,15 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: 
       });
       onClose();
     } catch (error) {
-      console.error('Error creating announcement:', error);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm">
       <div className="bg-white rounded-t-[5px] sm:rounded-[5px] w-full max-w-md max-h-[min(92dvh,92vh)] flex flex-col overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">Yangi e&apos;lon</h2>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <div className="flex items-center justify-between p-4 border-b border-surface-200 shrink-0">
+          <h2 className="text-lg font-semibold text-surface-900">Yangi e&apos;lon</h2>
+          <button type="button" onClick={onClose} className="text-surface-400 hover:text-surface-600">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -55,28 +54,28 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sarlavha</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">Sarlavha</label>
               <input
                 {...register('title')}
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 placeholder="masalan, Muhim xabar"
               />
               {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                <p className="mt-1 text-sm text-danger-600">{errors.title.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Matn</label>
+              <label className="block text-sm font-medium text-surface-700 mb-1">Matn</label>
               <textarea
                 {...register('content')}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 placeholder="E'loningizni bu yerga yozing..."
               />
               {errors.content && (
-                <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+                <p className="mt-1 text-sm text-danger-600">{errors.content.message}</p>
               )}
             </div>
 
@@ -85,15 +84,15 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: 
                 {...register('isImportant')}
                 type="checkbox"
                 id="isImportant"
-                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                className="h-4 w-4 text-danger-600 focus:ring-danger-500 border-surface-300 rounded"
               />
-              <label htmlFor="isImportant" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="isImportant" className="ml-2 block text-sm text-surface-700">
                 Muhim deb belgilash (yuqori ustuvorlik)
               </label>
             </div>
           </div>
 
-          <div className="flex gap-3 p-4 border-t border-gray-100 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex gap-3 p-4 border-t border-surface-100 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               Bekor qilish
             </Button>

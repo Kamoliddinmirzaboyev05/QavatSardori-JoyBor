@@ -121,10 +121,6 @@ const AttendanceDetail: React.FC = () => {
           }
         });
       }
-
-      // console.debug('Sending attendance data to API:', { records });
-      // console.debug('API endpoint:', `/attendance-records/${attendanceSession.id}/bulk-update/`);
-
       // Use the API service with the correct PATCH endpoint
       await apiService.updateAttendanceRecords(attendanceSession.id.toString(), records);
       
@@ -286,8 +282,8 @@ const AttendanceDetail: React.FC = () => {
     return (
       <div className="p-4">
         <div className="text-center py-8">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Davomat yuklanmoqda...</p>
+          <div className="w-8 h-8 border-2 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-surface-600">Davomat yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -297,7 +293,7 @@ const AttendanceDetail: React.FC = () => {
     return (
       <div className="p-4">
         <div className="text-center py-8">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-danger-600 mb-4">{error}</p>
           <Button onClick={() => navigate('/attendance')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Orqaga qaytish
@@ -311,7 +307,7 @@ const AttendanceDetail: React.FC = () => {
     return (
       <div className="p-4">
         <div className="text-center py-8">
-          <p className="text-gray-600">Davomat topilmadi</p>
+          <p className="text-surface-600">Davomat topilmadi</p>
           <Button onClick={() => navigate('/attendance')} className="mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Orqaga qaytish
@@ -336,40 +332,40 @@ const AttendanceDetail: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-surface-900">
               {formatDate(attendanceSession.date)}
             </h2>
-            <p className="text-sm text-gray-600">{attendanceSession.floor.name}</p>
+            <p className="text-sm text-surface-600">{attendanceSession.floor.name}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold text-surface-900">
             {stats.present}/{stats.total}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-surface-600">
             {stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0}% hozir
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-[5px]">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 bg-danger-50 border border-danger-200 rounded-[5px]">
+          <p className="text-sm text-danger-600">{error}</p>
         </div>
       )}
 
 
       {/* Statistics - Updated for 2 statuses only */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-emerald-50 rounded-[5px] p-4 text-center">
-          <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-emerald-600">{stats.present}</p>
-          <p className="text-sm text-emerald-700">Bor</p>
+        <div className="bg-success-50 rounded-[5px] p-4 text-center">
+          <CheckCircle className="w-8 h-8 text-success-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-success-600">{stats.present}</p>
+          <p className="text-sm text-success-700">Bor</p>
         </div>
-        <div className="bg-red-50 rounded-[5px] p-4 text-center">
-          <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-          <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
-          <p className="text-sm text-red-700">Yo'q</p>
+        <div className="bg-danger-50 rounded-[5px] p-4 text-center">
+          <XCircle className="w-8 h-8 text-danger-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-danger-600">{stats.absent}</p>
+          <p className="text-sm text-danger-700">Yo'q</p>
         </div>
       </div>
 
@@ -391,13 +387,13 @@ const AttendanceDetail: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">{room.room_name}</h3>
-                    <p className="text-sm text-gray-600">{room.students.length} ta talaba</p>
+                    <h3 className="font-semibold text-surface-900 text-lg">{room.room_name}</h3>
+                    <p className="text-sm text-surface-600">{room.students.length} ta talaba</p>
                   </div>
                   {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                    <ChevronUp className="w-5 h-5 text-surface-400" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-surface-400" />
                   )}
                 </div>
               </div>
@@ -405,16 +401,16 @@ const AttendanceDetail: React.FC = () => {
               {/* Students - Always visible when room is expanded */}
               {isExpanded && (
                 <div className="px-4 pb-4">
-                  <div className="border-t border-gray-200 pt-4">
+                  <div className="border-t border-surface-200 pt-4">
                     <div className="space-y-3">
                       {room.students.map((student) => (
                         <div key={student.id} className="bg-white rounded-[5px] p-4 shadow-sm">
                           <div className="flex flex-col space-y-4">
                             <div className="text-center">
-                              <p className="font-medium text-gray-900 text-lg">
+                              <p className="font-medium text-surface-900 text-lg">
                                 {student.student.name} {student.student.last_name}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-surface-500 mt-1">
                                 Record ID: {student.id} | Student ID: {student.student.id} | Status: {student.status}
                               </p>
                             </div>
@@ -427,8 +423,8 @@ const AttendanceDetail: React.FC = () => {
                                 className={clsx(
                                   "py-4 px-4 rounded-[5px] text-base font-medium transition-all duration-200 active:scale-95",
                                   student.status === 'Hozir' || student.status === 'Bor' || student.status === 'in' || student.status === 'In'
-                                    ? "bg-emerald-500 text-white shadow-lg ring-2 ring-emerald-200"
-                                    : "bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
+                                    ? "bg-success-500 text-white shadow-lg ring-2 ring-success-200"
+                                    : "bg-surface-100 text-surface-600 hover:bg-success-50 hover:text-success-700"
                                 )}
                               >
                                 <CheckCircle className="w-6 h-6 mx-auto mb-2" />
@@ -442,8 +438,8 @@ const AttendanceDetail: React.FC = () => {
                                 className={clsx(
                                   "py-4 px-4 rounded-[5px] text-base font-medium transition-all duration-200 active:scale-95",
                                   student.status === 'Yo\'q' || student.status === 'out' || student.status === 'Out'
-                                    ? "bg-red-500 text-white shadow-lg ring-2 ring-red-200"
-                                    : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
+                                    ? "bg-danger-500 text-white shadow-lg ring-2 ring-danger-200"
+                                    : "bg-surface-100 text-surface-600 hover:bg-danger-50 hover:text-danger-700"
                                 )}
                               >
                                 <XCircle className="w-6 h-6 mx-auto mb-2" />

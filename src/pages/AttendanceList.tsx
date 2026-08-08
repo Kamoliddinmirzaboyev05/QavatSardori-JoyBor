@@ -114,7 +114,6 @@ const AttendanceList: React.FC = () => {
       setGroupedSessions(sessions);
 
     } catch (err: any) {
-      console.error('Error fetching attendance data:', err);
       setGroupedSessions([]);
       setError(err.message || 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
     } finally {
@@ -154,7 +153,6 @@ const AttendanceList: React.FC = () => {
   };
 
   const handleSessionClick = (sessionId: number) => {
-    console.log('Session clicked:', sessionId);
     navigate(`/attendance/${sessionId}`);
   };
 
@@ -203,8 +201,8 @@ const AttendanceList: React.FC = () => {
         variants={itemVariants}
       >
         <div>
-          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Davomat Tarixi</h2>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Olingan davomatlar ro'yxati</p>
+          <h2 className="text-2xl font-black text-surface-900 uppercase tracking-tighter">Davomat Tarixi</h2>
+          <p className="text-[10px] font-bold text-surface-400 uppercase tracking-widest">Olingan davomatlar ro'yxati</p>
         </div>
         <motion.div
           whileHover={{ scale: 1.02 }}
@@ -213,7 +211,7 @@ const AttendanceList: React.FC = () => {
           <Button
             onClick={createAttendanceSession}
             disabled={isLoading}
-            className="w-full sm:w-auto bg-gray-900 hover:bg-black text-white py-3 rounded-[5px] uppercase tracking-widest font-bold text-[11px]"
+            className="w-full sm:w-auto bg-surface-900 hover:bg-black text-white py-3 rounded-[5px] uppercase tracking-widest font-bold text-[11px]"
           >
             <Calendar className="w-3.5 h-3.5 mr-2" />
             {isLoading ? 'Yuklanmoqda...' : 'Yangi Davomat Olish'}
@@ -223,12 +221,12 @@ const AttendanceList: React.FC = () => {
 
       {error && (
         <motion.div
-          className="p-3 bg-red-50 border border-red-200 rounded-[5px]"
+          className="p-3 bg-danger-50 border border-danger-200 rounded-[5px]"
           variants={itemVariants}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-danger-600">{error}</p>
         </motion.div>
       )}
 
@@ -238,8 +236,8 @@ const AttendanceList: React.FC = () => {
           className="text-center py-8"
           variants={itemVariants}
         >
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Davomatlar yuklanmoqda...</p>
+          <div className="w-8 h-8 border-2 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-surface-600">Davomatlar yuklanmoqda...</p>
         </motion.div>
       )}
 
@@ -252,10 +250,10 @@ const AttendanceList: React.FC = () => {
           {sortedDates.length > 0 ? (
             sortedDates.map((date) => (
               <div key={date} className="space-y-3">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1 mb-2 flex items-center">
-                  <span className="bg-gray-200 h-px flex-1 mr-3"></span>
+                <h3 className="text-xs font-bold text-surface-500 uppercase tracking-widest ml-1 mb-2 flex items-center">
+                  <span className="bg-surface-200 h-px flex-1 mr-3"></span>
                   {formatDisplayDate(date)}
-                  <span className="bg-gray-200 h-px flex-1 ml-3"></span>
+                  <span className="bg-surface-200 h-px flex-1 ml-3"></span>
                 </h3>
                 
                 {sessionsByDate[date].map((session) => (
@@ -274,45 +272,45 @@ const AttendanceList: React.FC = () => {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
-                              <Calendar className="w-4 h-4 text-gray-700" />
-                              <h3 className="font-bold text-gray-900 uppercase tracking-tight">
+                              <Calendar className="w-4 h-4 text-surface-700" />
+                              <h3 className="font-bold text-surface-900 uppercase tracking-tight">
                                 {session.floorName}
                               </h3>
                             </div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                            <p className="text-[10px] font-bold text-surface-400 uppercase tracking-widest">
                               {formatDate(session.date)} • ID: #{session.id}
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="text-right">
-                              <p className="text-xl font-black text-gray-900 leading-none">
+                              <p className="text-xl font-black text-surface-900 leading-none">
                                 {session.present}/{session.total}
                               </p>
-                              <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase">
+                              <p className="text-[10px] font-bold text-surface-500 mt-1 uppercase">
                                 {session.total > 0 ? Math.round((session.present / session.total) * 100) : 0}%
                               </p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-300" />
+                            <ChevronRight className="w-4 h-4 text-surface-300" />
                           </div>
                         </div>
 
                         {/* Statistics */}
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
-                            <p className="text-lg font-bold text-gray-900">{session.present}</p>
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Bor</p>
+                          <div className="bg-surface-50 rounded-[5px] p-2 text-center border border-surface-100">
+                            <p className="text-lg font-bold text-surface-900">{session.present}</p>
+                            <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest mt-1">Bor</p>
                           </div>
-                          <div className="bg-gray-50 rounded-[5px] p-2 text-center border border-gray-100">
-                            <p className="text-lg font-bold text-gray-900">{session.absent}</p>
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Yo'q</p>
+                          <div className="bg-surface-50 rounded-[5px] p-2 text-center border border-surface-100">
+                            <p className="text-lg font-bold text-surface-900">{session.absent}</p>
+                            <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest mt-1">Yo'q</p>
                           </div>
                         </div>
 
-                        <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center">
-                          <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                        <div className="mt-3 pt-3 border-t border-surface-50 flex justify-between items-center">
+                          <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
                             Yaratilgan: {new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                           </p>
-                          <p className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                          <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
                             {session.total} ta talaba
                           </p>
                         </div>
@@ -325,11 +323,11 @@ const AttendanceList: React.FC = () => {
           ) : (
             <motion.div variants={itemVariants}>
               <Card className="text-center py-12">
-                <div className="bg-blue-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-10 h-10 text-blue-600" />
+                <div className="bg-brand-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-10 h-10 text-brand-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Davomatlar yo'q</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg font-semibold text-surface-900 mb-2">Davomatlar yo'q</h3>
+                <p className="text-surface-600 mb-6">
                   Hali hech qanday davomat olinmagan
                 </p>
                 <Button

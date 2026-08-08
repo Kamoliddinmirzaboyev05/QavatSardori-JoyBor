@@ -35,7 +35,6 @@ const Dashboard: React.FC = () => {
       const data = await apiService.getDashboardData();
       setDashboardData(data as DashboardData);
     } catch (e: any) {
-      console.error('Dashboard data fetch error:', e);
       setError(e?.message || 'Ma\'lumotlarni yuklashda xatolik yuz berdi');
     } finally {
       setLoading(false);
@@ -68,9 +67,9 @@ const Dashboard: React.FC = () => {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <RefreshCw className="w-10 h-10 text-blue-600" />
+          <RefreshCw className="w-10 h-10 text-brand-600" />
         </motion.div>
-        <p className="mt-4 text-gray-600 font-medium">Ma'lumotlar yuklanmoqda...</p>
+        <p className="mt-4 text-surface-600 font-medium">Ma'lumotlar yuklanmoqda...</p>
       </div>
     );
   }
@@ -83,15 +82,15 @@ const Dashboard: React.FC = () => {
       error.toLowerCase().includes('permission');
     return (
       <div className="p-4 flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
+        <AlertCircle className="w-12 h-12 text-danger-500 mb-4" />
+        <h3 className="text-lg font-bold text-surface-900 mb-2">
           {isForbidden ? 'Ruxsat yo‘q' : 'Xatolik yuz berdi'}
         </h3>
-        <p className="text-gray-600 mb-6 max-w-sm">{error}</p>
+        <p className="text-surface-600 mb-6 max-w-sm">{error}</p>
         <div className="flex flex-wrap gap-3 justify-center">
           <button
             onClick={fetchDashboardData}
-            className="px-6 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-brand-600 text-white rounded-full font-medium hover:bg-brand-700 transition-colors"
           >
             Qayta urinish
           </button>
@@ -103,7 +102,7 @@ const Dashboard: React.FC = () => {
                 sessionStorage.removeItem('user_role');
                 window.location.href = '/login';
               }}
-              className="px-6 py-2 border border-gray-300 text-gray-800 rounded-full font-medium hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 border border-surface-300 text-surface-800 rounded-full font-medium hover:bg-surface-50 transition-colors"
             >
               Boshqa hisob bilan kirish
             </button>
@@ -125,7 +124,7 @@ const Dashboard: React.FC = () => {
       animate="visible"
     >
       {/* Floor Info Header */}
-      <motion.div variants={itemVariants} className="bg-gray-900 rounded-[5px] p-6 text-white shadow-sm">
+      <motion.div variants={itemVariants} className="bg-surface-900 rounded-[5px] p-6 text-white shadow-sm">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold uppercase tracking-tight">{floor.name}</h1>
@@ -152,25 +151,25 @@ const Dashboard: React.FC = () => {
         variants={containerVariants}
       >
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
+          <Card className="p-4 border border-surface-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
-                <Users className="w-5 h-5 text-gray-700" />
+              <div className="bg-surface-100 p-2 rounded-[5px] self-start mb-3">
+                <Users className="w-5 h-5 text-surface-700" />
               </div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Talabalar</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{students.total}</p>
+              <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Talabalar</p>
+              <p className="text-2xl font-bold text-surface-900 mt-1">{students.total}</p>
             </div>
           </Card>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
+          <Card className="p-4 border border-surface-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
-                <CheckCircle className="w-5 h-5 text-gray-700" />
+              <div className="bg-surface-100 p-2 rounded-[5px] self-start mb-3">
+                <CheckCircle className="w-5 h-5 text-surface-700" />
               </div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Davomat</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Davomat</p>
+              <p className="text-2xl font-bold text-surface-900 mt-1">
                 {attendance_today.present}/{attendance_today.total}
               </p>
             </div>
@@ -178,13 +177,13 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
+          <Card className="p-4 border border-surface-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
-                <DollarSign className="w-5 h-5 text-gray-700" />
+              <div className="bg-surface-100 p-2 rounded-[5px] self-start mb-3">
+                <DollarSign className="w-5 h-5 text-surface-700" />
               </div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Yig'imlar</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Yig'imlar</p>
+              <p className="text-2xl font-bold text-surface-900 mt-1">
                 {collections.paid_records}/{collections.total}
               </p>
             </div>
@@ -192,13 +191,13 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="p-4 border border-gray-100 bg-white shadow-sm h-full">
+          <Card className="p-4 border border-surface-100 bg-white shadow-sm h-full">
             <div className="flex flex-col h-full">
-              <div className="bg-gray-100 p-2 rounded-[5px] self-start mb-3">
-                <ClipboardList className="w-5 h-5 text-gray-700" />
+              <div className="bg-surface-100 p-2 rounded-[5px] self-start mb-3">
+                <ClipboardList className="w-5 h-5 text-surface-700" />
               </div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Vazifalar</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{tasks.pending}</p>
+              <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Vazifalar</p>
+              <p className="text-2xl font-bold text-surface-900 mt-1">{tasks.pending}</p>
             </div>
           </Card>
         </motion.div>
@@ -206,38 +205,38 @@ const Dashboard: React.FC = () => {
 
       {/* Attendance Today Section */}
       <motion.div variants={itemVariants}>
-        <Card className="p-5 border border-gray-100 shadow-sm relative">
+        <Card className="p-5 border border-surface-100 shadow-sm relative">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center">
-              <Clock className="w-4 h-4 mr-2 text-gray-700" />
+            <h3 className="text-sm font-bold text-surface-900 uppercase tracking-widest flex items-center">
+              <Clock className="w-4 h-4 mr-2 text-surface-700" />
               Bugungi davomat
             </h3>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{getCurrentDate()}</span>
+            <span className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">{getCurrentDate()}</span>
           </div>
           
           {!attendance_today.has_session ? (
             <div className="text-center py-6">
-              <p className="text-sm text-gray-500 mb-4">Bugun hali davomat olinmagan</p>
+              <p className="text-sm text-surface-500 mb-4">Bugun hali davomat olinmagan</p>
               <Link 
                 to="/attendance/new"
-                className="inline-flex items-center px-6 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-[5px] hover:bg-black transition-colors"
+                className="inline-flex items-center px-6 py-2 bg-surface-900 text-white text-xs font-bold uppercase tracking-widest rounded-[5px] hover:bg-black transition-colors"
               >
                 Davomatni boshlash
               </Link>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
-                <p className="text-2xl font-bold text-gray-900">{attendance_today.present}</p>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Bor</p>
+              <div className="bg-surface-50 p-4 rounded-[5px] text-center border border-surface-100">
+                <p className="text-2xl font-bold text-surface-900">{attendance_today.present}</p>
+                <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest mt-1">Bor</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
-                <p className="text-2xl font-bold text-gray-900">{attendance_today.absent}</p>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Yo'q</p>
+              <div className="bg-surface-50 p-4 rounded-[5px] text-center border border-surface-100">
+                <p className="text-2xl font-bold text-surface-900">{attendance_today.absent}</p>
+                <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest mt-1">Yo'q</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-[5px] text-center border border-gray-100">
-                <p className="text-2xl font-bold text-gray-900">{attendance_today.total}</p>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Jami</p>
+              <div className="bg-surface-50 p-4 rounded-[5px] text-center border border-surface-100">
+                <p className="text-2xl font-bold text-surface-900">{attendance_today.total}</p>
+                <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest mt-1">Jami</p>
               </div>
             </div>
           )}
@@ -249,8 +248,8 @@ const Dashboard: React.FC = () => {
         <motion.div variants={itemVariants}>
           <Card className="p-5 border-none shadow-sm h-full">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+              <h3 className="text-lg font-bold text-surface-900 flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-success-600" />
                 7 kunlik davomat
               </h3>
             </div>
@@ -264,17 +263,17 @@ const Dashboard: React.FC = () => {
                   <div key={idx} className="flex flex-col items-center flex-1 group">
                     <div className="w-full relative flex flex-col justify-end h-32">
                       <motion.div 
-                        className="bg-blue-500 rounded-t-lg w-full min-h-[4px]"
+                        className="bg-brand-500 rounded-t-lg w-full min-h-[4px]"
                         initial={{ height: 0 }}
                         animate={{ height: `${percentage}%` }}
                         transition={{ delay: 0.2 + idx * 0.05, duration: 0.5 }}
                       />
                       {/* Tooltip on hover */}
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                         {day.present}/{day.total} ({Math.round(percentage)}%)
                       </div>
                     </div>
-                    <p className="text-[10px] font-medium text-gray-500 mt-3 uppercase tracking-tighter">
+                    <p className="text-[10px] font-medium text-surface-500 mt-3 uppercase tracking-tighter">
                       {dayName}
                     </p>
                   </div>
@@ -287,43 +286,43 @@ const Dashboard: React.FC = () => {
         {/* Tasks Breakdown */}
         <motion.div variants={itemVariants}>
           <Card className="p-5 border-none shadow-sm h-full">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-              <ClipboardList className="w-5 h-5 mr-2 text-purple-600" />
+            <h3 className="text-lg font-bold text-surface-900 mb-6 flex items-center">
+              <ClipboardList className="w-5 h-5 mr-2 text-brand-600" />
               Vazifalar tahlili
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-red-400 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Kutilmoqda</span>
+                  <div className="w-3 h-3 rounded-full bg-danger-400 mr-3" />
+                  <span className="text-sm font-medium text-surface-700">Kutilmoqda</span>
                 </div>
-                <span className="text-sm font-bold bg-red-50 text-red-600 px-3 py-1 rounded-full">{tasks.pending}</span>
+                <span className="text-sm font-bold bg-danger-50 text-danger-600 px-3 py-1 rounded-full">{tasks.pending}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Jarayonda</span>
+                  <div className="w-3 h-3 rounded-full bg-warning-400 mr-3" />
+                  <span className="text-sm font-medium text-surface-700">Jarayonda</span>
                 </div>
-                <span className="text-sm font-bold bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full">{tasks.in_progress}</span>
+                <span className="text-sm font-bold bg-warning-50 text-warning-600 px-3 py-1 rounded-full">{tasks.in_progress}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-green-400 mr-3" />
-                  <span className="text-sm font-medium text-gray-700">Bajarildi</span>
+                  <div className="w-3 h-3 rounded-full bg-success-400 mr-3" />
+                  <span className="text-sm font-medium text-surface-700">Bajarildi</span>
                 </div>
-                <span className="text-sm font-bold bg-green-50 text-green-600 px-3 py-1 rounded-full">{tasks.completed}</span>
+                <span className="text-sm font-bold bg-success-50 text-success-600 px-3 py-1 rounded-full">{tasks.completed}</span>
               </div>
               
-              <div className="pt-4 border-t border-gray-100">
+              <div className="pt-4 border-t border-surface-100">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-gray-500 uppercase">Umumiy bajarilish</span>
-                  <span className="text-xs font-bold text-purple-600">
+                  <span className="text-xs font-bold text-surface-500 uppercase">Umumiy bajarilish</span>
+                  <span className="text-xs font-bold text-brand-600">
                     {tasks.total > 0 ? Math.round((tasks.completed / tasks.total) * 100) : 0}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-surface-100 rounded-full h-2">
                   <motion.div 
-                    className="bg-purple-600 h-2 rounded-full"
+                    className="bg-brand-600 h-2 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${tasks.total > 0 ? (tasks.completed / tasks.total) * 100 : 0}%` }}
                     transition={{ duration: 1 }}
@@ -338,11 +337,11 @@ const Dashboard: React.FC = () => {
       {/* Rooms Occupancy Section */}
       <motion.div variants={itemVariants}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center px-1">
-            <Home className="w-5 h-5 mr-2 text-indigo-600" />
+          <h3 className="text-lg font-bold text-surface-900 flex items-center px-1">
+            <Home className="w-5 h-5 mr-2 text-brand-600" />
             Xonalar holati
           </h3>
-          <Link to="/students" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center">
+          <Link to="/students" className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center">
             Barchasi <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -357,22 +356,22 @@ const Dashboard: React.FC = () => {
             >
               <Card className="p-4 border-none shadow-sm flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-gray-900">{room.room}</h4>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Sig'im: <span className="font-semibold text-gray-700">{room.capacity}</span>
+                  <h4 className="font-bold text-surface-900">{room.room}</h4>
+                  <p className="text-xs text-surface-500 mt-1">
+                    Sig'im: <span className="font-semibold text-surface-700">{room.capacity}</span>
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
                   <div className="flex -space-x-1 mb-1">
                     {[...Array(room.occupied)].map((_, i) => (
-                      <div key={i} className="w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
+                      <div key={i} className="w-2 h-2 rounded-full bg-brand-500 ring-2 ring-white" />
                     ))}
                     {[...Array(room.free)].map((_, i) => (
-                      <div key={i} className="w-2 h-2 rounded-full bg-gray-200 ring-2 ring-white" />
+                      <div key={i} className="w-2 h-2 rounded-full bg-surface-200 ring-2 ring-white" />
                     ))}
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    room.free === 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                    room.free === 0 ? 'bg-danger-50 text-danger-600' : 'bg-success-50 text-success-600'
                   }`}>
                     {room.free === 0 ? 'To\'lgan' : `${room.free} bo'sh`}
                   </span>

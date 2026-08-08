@@ -23,7 +23,7 @@ const BottomNavigation: React.FC = () => {
 
   return (
     <motion.nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 h-16 shadow-lg"
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 z-40 h-16 shadow-lg"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
@@ -39,8 +39,8 @@ const BottomNavigation: React.FC = () => {
               className={clsx(
                 "flex flex-col items-center justify-center transition-all duration-200",
                 isActive 
-                  ? "text-blue-700 bg-gray-50 border-t-2 border-blue-700" 
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "text-brand-700 bg-surface-50 border-t-2 border-brand-700" 
+                  : "text-surface-500 hover:text-surface-900"
               )}
             >
               <Icon className={clsx("w-5 h-5", isActive ? "mb-0.5" : "mb-1")} />

@@ -38,7 +38,6 @@ const Students: React.FC = () => {
         dispatch({ type: 'DELETE_STUDENT', payload: studentId });
         toast.success('Talaba o\'chirildi');
       } catch (error) {
-        console.error('Error deleting student:', error);
         toast.error('Talabani o\'chirishda xatolik yuz berdi');
       }
     }
@@ -53,8 +52,8 @@ const Students: React.FC = () => {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Talabalar</h2>
-          <p className="text-sm text-gray-600">{activeStudents.length} faol talaba</p>
+          <h2 className="text-xl font-bold text-surface-900">Talabalar</h2>
+          <p className="text-sm text-surface-600">{activeStudents.length} faol talaba</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -74,8 +73,8 @@ const Students: React.FC = () => {
             <Card key={student.id} className="relative">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{student.name} {student.lastName}</h3>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                  <h3 className="font-semibold text-surface-900">{student.name} {student.lastName}</h3>
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-surface-600">
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
                       {student.room}-xona
@@ -108,7 +107,7 @@ const Students: React.FC = () => {
           ))
         ) : (
           <Card className="text-center py-8">
-            <p className="text-gray-500">Talabalar topilmadi</p>
+            <p className="text-surface-500">Talabalar topilmadi</p>
           </Card>
         )}
       </div>

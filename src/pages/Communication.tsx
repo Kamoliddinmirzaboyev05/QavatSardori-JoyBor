@@ -160,26 +160,26 @@ const Communication: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />;
+        return <AlertCircle className="w-5 h-5 text-danger-500 shrink-0" />;
       case 'in_progress':
-        return <Clock className="w-5 h-5 text-orange-500 shrink-0" />;
+        return <Clock className="w-5 h-5 text-warning-500 shrink-0" />;
       case 'resolved':
-        return <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />;
+        return <CheckCircle className="w-5 h-5 text-success-500 shrink-0" />;
       default:
-        return <MessageCircle className="w-5 h-5 text-gray-500 shrink-0" />;
+        return <MessageCircle className="w-5 h-5 text-surface-500 shrink-0" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-danger-600 bg-danger-50 border-danger-200';
       case 'in_progress':
-        return 'text-orange-600 bg-orange-50 border-orange-200';
+        return 'text-warning-600 bg-warning-50 border-warning-200';
       case 'resolved':
-        return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        return 'text-success-600 bg-success-50 border-success-200';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'text-surface-600 bg-surface-50 border-surface-200';
     }
   };
 
@@ -189,8 +189,8 @@ const Communication: React.FC = () => {
     <div className="p-4 space-y-4 pb-24">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Aloqa</h2>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          <h2 className="text-2xl font-black text-surface-900 uppercase tracking-tighter">Aloqa</h2>
+          <p className="text-[10px] font-bold text-surface-400 uppercase tracking-widest">
             Shikoyatlar va e&apos;lonlar
           </p>
         </div>
@@ -210,15 +210,15 @@ const Communication: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-[5px]">
+      <div className="grid grid-cols-2 gap-2 p-1 bg-surface-100 rounded-[5px]">
         <button
           type="button"
           onClick={() => setTab('complaints')}
           className={clsx(
             'flex items-center justify-center gap-2 py-2.5 rounded-[5px] text-[10px] font-bold uppercase tracking-widest transition-colors',
             tab === 'complaints'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-white text-surface-900 shadow-sm'
+              : 'text-surface-500 hover:text-surface-800'
           )}
         >
           <MessageCircle className="w-4 h-4" />
@@ -230,8 +230,8 @@ const Communication: React.FC = () => {
           className={clsx(
             'flex items-center justify-center gap-2 py-2.5 rounded-[5px] text-[10px] font-bold uppercase tracking-widest transition-colors',
             tab === 'announcements'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-800'
+              ? 'bg-white text-surface-900 shadow-sm'
+              : 'text-surface-500 hover:text-surface-800'
           )}
         >
           <Megaphone className="w-4 h-4" />
@@ -251,8 +251,8 @@ const Communication: React.FC = () => {
                 className={clsx(
                   'px-1 py-2 rounded-[5px] text-[9px] font-bold uppercase tracking-tight transition-colors border-2',
                   statusFilter === f
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'
+                    ? 'bg-surface-900 text-white border-surface-900'
+                    : 'bg-white text-surface-600 border-surface-100 hover:bg-surface-50'
                 )}
               >
                 {f === 'barchasi' ? 'Barchasi' : STATUS_MAP[f as ApiStatus]}
@@ -263,31 +263,31 @@ const Communication: React.FC = () => {
           <div className="space-y-3">
             {complaintsLoading ? (
               <Card className="text-center py-10">
-                <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin" />
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Yuklanmoqda...</p>
+                <RefreshCw className="w-8 h-8 text-surface-400 mx-auto mb-2 animate-spin" />
+                <p className="text-[10px] font-bold text-surface-400 uppercase">Yuklanmoqda...</p>
               </Card>
             ) : complaints.length > 0 ? (
               complaints.map((item) => (
-                <Card key={item.id} className="p-4 border border-gray-100">
+                <Card key={item.id} className="p-4 border border-surface-100">
                   <div className="flex items-start gap-2 mb-2">
                     {getStatusIcon(item.status)}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 text-sm">{item.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                      <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                      <h3 className="font-bold text-surface-900 text-sm">{item.title}</h3>
+                      <p className="text-sm text-surface-600 mt-1">{item.description}</p>
+                      <p className="text-[10px] text-surface-400 mt-2 font-medium">
                         {item.student_name || 'Nomaʼlum'}
                         {item.created_at ? ` · ${formatDateTime(item.created_at)}` : ''}
                         {item.category ? ` · ${item.category}` : ''}
                       </p>
                       {item.admin_response && (
-                        <p className="text-xs text-blue-700 mt-2 bg-blue-50 p-2 rounded-[5px]">
+                        <p className="text-xs text-brand-700 mt-2 bg-brand-50 p-2 rounded-[5px]">
                           Javob: {item.admin_response}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-gray-50">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-surface-50">
                     <span
                       className={clsx(
                         'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border uppercase',
@@ -323,12 +323,12 @@ const Communication: React.FC = () => {
                 </Card>
               ))
             ) : (
-              <Card className="text-center py-12 border-dashed border-2 border-gray-100 bg-transparent shadow-none">
-                <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-900 uppercase tracking-widest">
+              <Card className="text-center py-12 border-dashed border-2 border-surface-100 bg-transparent shadow-none">
+                <MessageCircle className="w-12 h-12 text-surface-300 mx-auto mb-3" />
+                <p className="text-sm font-bold text-surface-900 uppercase tracking-widest">
                   Shikoyatlar yo&apos;q
                 </p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase mt-1 max-w-[220px] mx-auto">
+                <p className="text-[10px] font-bold text-surface-400 uppercase mt-1 max-w-[220px] mx-auto">
                   Talabalar murojaat yuborganda shu yerda ko&apos;rinadi
                 </p>
               </Card>
@@ -343,7 +343,7 @@ const Communication: React.FC = () => {
           <div className="flex justify-end">
             <Button
               onClick={() => setShowForm(true)}
-              className="bg-gray-900 hover:bg-black text-white text-[10px] font-bold uppercase tracking-widest"
+              className="bg-surface-900 hover:bg-black text-white text-[10px] font-bold uppercase tracking-widest"
             >
               <Plus className="w-3.5 h-3.5 mr-2" />
               Yangi e&apos;lon
@@ -360,36 +360,36 @@ const Communication: React.FC = () => {
           <div className="space-y-3">
             {announcementsLoading ? (
               <Card className="text-center py-10">
-                <RefreshCw className="w-8 h-8 text-gray-400 mx-auto animate-spin" />
+                <RefreshCw className="w-8 h-8 text-surface-400 mx-auto animate-spin" />
               </Card>
             ) : announcements.length > 0 ? (
               announcements.map((item) => (
                 <Card
                   key={`${item.type || 'n'}-${item.id}`}
-                  className="p-4 border border-gray-100"
+                  className="p-4 border border-surface-100"
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={clsx(
                         'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-                        item.type === 'task' ? 'bg-red-100' : 'bg-blue-100'
+                        item.type === 'task' ? 'bg-danger-100' : 'bg-brand-100'
                       )}
                     >
                       {item.type === 'task' ? (
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <AlertTriangle className="w-5 h-5 text-danger-600" />
                       ) : (
-                        <Megaphone className="w-5 h-5 text-blue-600" />
+                        <Megaphone className="w-5 h-5 text-brand-600" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 text-sm">
+                      <h3 className="font-bold text-surface-900 text-sm">
                         {item.title || (item.type === 'task' ? 'Vazifa' : "E'lon")}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-surface-600 mt-1">
                         {item.message || item.content || item.description || '—'}
                       </p>
                       {item.created_at && (
-                        <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                        <p className="text-[10px] text-surface-400 mt-2 font-medium">
                           {formatDateTime(item.created_at)}
                         </p>
                       )}
@@ -398,12 +398,12 @@ const Communication: React.FC = () => {
                 </Card>
               ))
             ) : (
-              <Card className="text-center py-12 border-dashed border-2 border-gray-100 bg-transparent shadow-none">
-                <Megaphone className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-900 uppercase tracking-widest">
+              <Card className="text-center py-12 border-dashed border-2 border-surface-100 bg-transparent shadow-none">
+                <Megaphone className="w-12 h-12 text-surface-300 mx-auto mb-3" />
+                <p className="text-sm font-bold text-surface-900 uppercase tracking-widest">
                   E&apos;lonlar yo&apos;q
                 </p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">
+                <p className="text-[10px] font-bold text-surface-400 uppercase mt-1">
                   Yangi e&apos;lon yaratish uchun tugmani bosing
                 </p>
               </Card>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request, User } from '../types';
-import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
+import { generateId } from '../utils/storage';
 import apiService from '../services/api';
 
 type AppAction =
@@ -40,7 +40,6 @@ const AppContext = createContext<{
 
 function appReducer(state: AppState, action: AppAction): AppState {
   if (!action) {
-    console.error('Reducer called without action');
     return state;
   }
 
@@ -224,9 +223,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     dispatch({ type: 'UPDATE_USER', payload: user });
   };
 
-  // Load initial data from storage + qavat sardori ruxsatini tekshir
+  // Token + floor-leader ruxsatini tekshir (localStorage mock yo‘q)
   useEffect(() => {
-    const storedData = loadFromStorage();
     const accessToken = sessionStorage.getItem('access_token');
     if (!accessToken) return;
 
@@ -237,10 +235,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (cancelled) return;
         dispatch({
           type: 'LOAD_DATA',
-          payload: { ...storedData, isAuthenticated: true },
+          payload: { isAuthenticated: true },
         });
       } catch {
-        // Token bor lekin sardor emas yoki muddati o'tgan
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('refresh_token');
         sessionStorage.removeItem('user_role');
@@ -255,68 +252,61 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  // Fetch initial data from API when authenticated
+  // Talabalar faqat API dan
   useEffect(() => {
-    if (state.isAuthenticated) {
-      const fetchStudents = async () => {
-        try {
-          const response = await apiService.getStudents();
-          const studentsData = Array.isArray(response)
-            ? response
-            : response &&
-                typeof response === 'object' &&
-                Array.isArray((response as { results?: unknown }).results)
-              ? (response as { results: unknown[] }).results
-              : [];
-          if (Array.isArray(studentsData) && studentsData.length >= 0) {
-            const students: Student[] = studentsData.map((raw) => {
-              const s = raw as {
-                id?: number | string;
-                first_name?: string;
-                name?: string;
-                last_name?: string;
-                room_name?: string;
-                room?: number | string | { id?: number; name?: string };
-                phone?: string;
-                accepted_date?: string;
-                created_at?: string;
-              };
-              return {
-                id: s.id?.toString() || generateId(),
-                name: s.name || s.first_name || '',
-                lastName: s.last_name || '',
-                room:
-                  s.room_name ||
-                  (typeof s.room === 'object' && s.room
-                    ? s.room.name || String(s.room.id || '')
-                    : s.room?.toString() || '') ||
-                  '',
-                phone: s.phone || '',
-                createdAt: s.accepted_date || s.created_at || new Date().toISOString(),
-                isDeleted: false,
-              };
-            });
+    if (!state.isAuthenticated) return;
 
-            dispatch({ type: 'LOAD_DATA', payload: { students } });
-          }
-        } catch (error) {
-          // 403/role xatolari console'da shovqin qilmasin
-          if (error instanceof Error && !error.message.includes('sardori')) {
-            console.error('Error fetching students:', error);
-          }
-        }
-      };
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await apiService.getStudents();
+        const studentsData = Array.isArray(response)
+          ? response
+          : response &&
+              typeof response === 'object' &&
+              Array.isArray((response as { results?: unknown }).results)
+            ? (response as { results: unknown[] }).results
+            : [];
+        if (cancelled || !Array.isArray(studentsData)) return;
 
-      fetchStudents();
-    }
+        const students: Student[] = studentsData.map((raw) => {
+          const s = raw as {
+            id?: number | string;
+            first_name?: string;
+            name?: string;
+            last_name?: string;
+            room_name?: string;
+            room?: number | string | { id?: number; name?: string };
+            phone?: string;
+            accepted_date?: string;
+            created_at?: string;
+          };
+          return {
+            id: s.id?.toString() || generateId(),
+            name: s.name || s.first_name || '',
+            lastName: s.last_name || '',
+            room:
+              s.room_name ||
+              (typeof s.room === 'object' && s.room
+                ? s.room.name || String(s.room.id || '')
+                : s.room?.toString() || '') ||
+              '',
+            phone: s.phone || '',
+            createdAt: s.accepted_date || s.created_at || new Date().toISOString(),
+            isDeleted: false,
+          };
+        });
+
+        dispatch({ type: 'LOAD_DATA', payload: { students } });
+      } catch {
+        /* 403/role — jimgina */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [state.isAuthenticated]);
-
-  // Save to storage on state changes
-  useEffect(() => {
-    if (state.isAuthenticated) {
-      saveToStorage(state);
-    }
-  }, [state]);
 
   return (
     <AppContext.Provider value={{ state, dispatch, updateUser }}>

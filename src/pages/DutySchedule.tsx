@@ -161,22 +161,22 @@ const DutySchedule: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'bajarilgan':
-        return <CheckCircle className="w-5 h-5 text-emerald-600" />;
+        return <CheckCircle className="w-5 h-5 text-success-600" />;
       case 'bajarilmagan':
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
+        return <AlertCircle className="w-5 h-5 text-danger-600" />;
       default:
-        return <Clock className="w-5 h-5 text-orange-600" />;
+        return <Clock className="w-5 h-5 text-warning-600" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'bajarilgan':
-        return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+        return 'text-success-600 bg-success-50 border-success-200';
       case 'bajarilmagan':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'text-danger-600 bg-danger-50 border-danger-200';
       default:
-        return 'text-orange-600 bg-orange-50 border-orange-200';
+        return 'text-warning-600 bg-warning-50 border-warning-200';
     }
   };
 
@@ -206,26 +206,26 @@ const DutySchedule: React.FC = () => {
     >
       <motion.div variants={itemVariants}>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Navbatchilik</h2>
-          <p className="text-sm text-gray-600">Kunlik navbatchilik tayinlash va kuzatish</p>
+          <h2 className="text-xl font-bold text-surface-900">Navbatchilik</h2>
+          <p className="text-sm text-surface-600">Kunlik navbatchilik tayinlash va kuzatish</p>
         </div>
       </motion.div>
 
       {/* Current Duty */}
       <motion.div variants={itemVariants}>
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Bugungi navbatchi</h3>
+          <h3 className="text-lg font-semibold text-surface-900 mb-4">Bugungi navbatchi</h3>
           {currentDuty ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-brand-600" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium text-surface-900">
                     {currentDuty.room}-xona
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-surface-600">
                     Bugungi navbatchi xona
                   </p>
                 </div>
@@ -264,10 +264,10 @@ const DutySchedule: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Bugun navbatchi tayinlanmagan</p>
+              <User className="w-12 h-12 text-surface-400 mx-auto mb-4" />
+              <p className="text-surface-500">Bugun navbatchi tayinlanmagan</p>
               {nextRoom && (
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-surface-400 mt-2">
                   Keyingi navbat: {nextRoom}-xona
                 </p>
               )}
@@ -279,19 +279,19 @@ const DutySchedule: React.FC = () => {
       {/* Duty History */}
       <motion.div variants={itemVariants}>
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Navbatchilik tarixi</h3>
+          <h3 className="text-lg font-semibold text-surface-900 mb-4">Navbatchilik tarixi</h3>
           <div className="space-y-3">
             {dutyAssignments.length > 0 ? (
               dutyAssignments
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((duty) => {
                   return (
-                    <div key={duty.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-[5px]">
+                    <div key={duty.id} className="flex items-center justify-between p-3 bg-surface-50 rounded-[5px]">
                       <div className="flex items-center space-x-3">
                         {getStatusIcon(duty.status)}
                         <div>
-                          <p className="font-medium text-gray-900">{duty.room}-xona</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="font-medium text-surface-900">{duty.room}-xona</p>
+                          <p className="text-sm text-surface-600">
                             {formatDate(duty.date)}
                           </p>
                         </div>
@@ -310,8 +310,8 @@ const DutySchedule: React.FC = () => {
                 })
             ) : (
               <div className="text-center py-8">
-                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Navbatchilik tarixi yo'q</p>
+                <Clock className="w-12 h-12 text-surface-400 mx-auto mb-4" />
+                <p className="text-surface-500">Navbatchilik tarixi yo'q</p>
               </div>
             )}
           </div>
@@ -322,9 +322,9 @@ const DutySchedule: React.FC = () => {
       {showAssignModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-[5px] w-full max-w-md mx-4">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Navbatchi xona tayinlash</h3>
-              <p className="text-sm text-gray-600 mt-1">Bugun uchun navbatchi xonani tanlang</p>
+            <div className="p-4 border-b border-surface-200">
+              <h3 className="text-lg font-semibold text-surface-900">Navbatchi xona tayinlash</h3>
+              <p className="text-sm text-surface-600 mt-1">Bugun uchun navbatchi xonani tanlang</p>
             </div>
 
             <div className="p-4">
@@ -335,8 +335,8 @@ const DutySchedule: React.FC = () => {
                     className={clsx(
                       "flex items-center p-3 border rounded-[5px] cursor-pointer transition-colors",
                       selectedRoom === room
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:bg-gray-50"
+                        ? "border-brand-500 bg-brand-50"
+                        : "border-surface-200 hover:bg-surface-50"
                     )}
                   >
                     <input
@@ -348,23 +348,23 @@ const DutySchedule: React.FC = () => {
                       className="sr-only"
                     />
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Calendar className="w-4 h-4 text-gray-600" />
+                      <div className="w-8 h-8 bg-surface-200 rounded-full flex items-center justify-center">
+                        <Calendar className="w-4 h-4 text-surface-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{room}-xona</p>
-                        <p className="text-sm text-gray-600">Navbatchilik uchun</p>
+                        <p className="font-medium text-surface-900">{room}-xona</p>
+                        <p className="text-sm text-surface-600">Navbatchilik uchun</p>
                       </div>
                     </div>
                     {selectedRoom === room && (
-                      <CheckCircle className="w-5 h-5 text-blue-600 ml-auto" />
+                      <CheckCircle className="w-5 h-5 text-brand-600 ml-auto" />
                     )}
                   </label>
                 ))}
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-200 flex space-x-3">
+            <div className="p-4 border-t border-surface-200 flex space-x-3">
               <Button
                 variant="secondary"
                 className="flex-1"

@@ -16,9 +16,13 @@ export default defineConfig({
     // Disable any PWA/service worker generation
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          motion: ['framer-motion'],
+        },
       },
     },
+    chunkSizeWarningLimit: 600,
   },
   optimizeDeps: {
     exclude: ['lucide-react'],

@@ -30,7 +30,6 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
       // For now, we'll use the first available student
       const activeStudents = state.students.filter(s => !s.isDeleted);
       if (activeStudents.length === 0) {
-        console.error('No active students available');
         return;
       }
 
@@ -44,18 +43,17 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
       });
       onClose();
     } catch (error) {
-      console.error('Error creating request:', error);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white rounded-t-lg sm:rounded-[5px] w-full max-w-md max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Yangi so'rov</h2>
+        <div className="flex items-center justify-between p-4 border-b border-surface-200">
+          <h2 className="text-lg font-semibold text-surface-900">Yangi so'rov</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-surface-400 hover:text-surface-600"
           >
             <X className="w-6 h-6" />
           </button>
@@ -63,32 +61,32 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-700 mb-1">
               Mavzu
             </label>
             <input
               {...register('title')}
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               placeholder="masalan, Xonadagi konditsioner ishlamayapti"
             />
             {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+              <p className="mt-1 text-sm text-danger-600">{errors.title.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-surface-700 mb-1">
               Tavsif
             </label>
             <textarea
               {...register('content')}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-[5px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-surface-300 rounded-[5px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               placeholder="So'rovingizni batafsil tasvirlab bering..."
             />
             {errors.content && (
-              <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+              <p className="mt-1 text-sm text-danger-600">{errors.content.message}</p>
             )}
           </div>
 
