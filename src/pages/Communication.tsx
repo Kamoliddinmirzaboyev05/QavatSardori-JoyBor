@@ -123,6 +123,18 @@ const Communication: React.FC = () => {
     if (tab === 'announcements') loadAnnouncements();
   }, [tab, loadAnnouncements]);
 
+  const markRead = async (item: NotifItem) => {
+    if (item.type === 'task' || item.is_read) return;
+    setAnnouncements((prev) =>
+      prev.map((a) => (a.id === item.id && a.type === item.type ? { ...a, is_read: true } : a))
+    );
+    try {
+      await apiService.markNotificationAsRead(item.id);
+    } catch {
+      // ponytail: optimistik yangilanish — muvaffaqiyatsiz bo'lsa keyingi loadAnnouncements() tuzatadi
+    }
+  };
+
   const updateStatus = async (id: number, status: ApiStatus) => {
     try {
       await apiService.updateComplaint(id, { status });
@@ -363,40 +375,50 @@ const Communication: React.FC = () => {
                 <RefreshCw className="w-8 h-8 text-surface-400 mx-auto animate-spin" />
               </Card>
             ) : announcements.length > 0 ? (
-              announcements.map((item) => (
-                <Card
-                  key={`${item.type || 'n'}-${item.id}`}
-                  className="p-4 border border-surface-100"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={clsx(
-                        'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-                        item.type === 'task' ? 'bg-danger-100' : 'bg-brand-100'
-                      )}
-                    >
-                      {item.type === 'task' ? (
-                        <AlertTriangle className="w-5 h-5 text-danger-600" />
-                      ) : (
-                        <Megaphone className="w-5 h-5 text-brand-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-surface-900 text-sm">
-                        {item.title || (item.type === 'task' ? 'Vazifa' : "E'lon")}
-                      </h3>
-                      <p className="text-sm text-surface-600 mt-1">
-                        {item.message || item.content || item.description || '—'}
-                      </p>
-                      {item.created_at && (
-                        <p className="text-[10px] text-surface-400 mt-2 font-medium">
-                          {formatDateTime(item.created_at)}
+              announcements.map((item) => {
+                const unread = item.type !== 'task' && item.is_read === false;
+                return (
+                  <Card
+                    key={`${item.type || 'n'}-${item.id}`}
+                    onClick={() => markRead(item)}
+                    className={clsx(
+                      'p-4 border',
+                      unread ? 'border-brand-200 bg-brand-50/40 cursor-pointer' : 'border-surface-100'
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={clsx(
+                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+                          item.type === 'task' ? 'bg-danger-100' : 'bg-brand-100'
+                        )}
+                      >
+                        {item.type === 'task' ? (
+                          <AlertTriangle className="w-5 h-5 text-danger-600" />
+                        ) : (
+                          <Megaphone className="w-5 h-5 text-brand-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-surface-900 text-sm">
+                            {item.title || (item.type === 'task' ? 'Vazifa' : "E'lon")}
+                          </h3>
+                          {unread && <span className="w-2 h-2 rounded-full bg-brand-600 shrink-0" />}
+                        </div>
+                        <p className="text-sm text-surface-600 mt-1">
+                          {item.message || item.content || item.description || '—'}
                         </p>
-                      )}
+                        {item.created_at && (
+                          <p className="text-[10px] text-surface-400 mt-2 font-medium">
+                            {formatDateTime(item.created_at)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))
+                  </Card>
+                );
+              })
             ) : (
               <Card className="text-center py-12 border-dashed border-2 border-surface-100 bg-transparent shadow-none">
                 <Megaphone className="w-12 h-12 text-surface-300 mx-auto mb-3" />
