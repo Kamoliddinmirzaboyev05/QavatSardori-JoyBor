@@ -4,7 +4,7 @@ import { generateId } from '../utils/storage';
 import apiService from '../services/api';
 
 type AppAction =
-  | { type: 'LOGIN_SUCCESS'; payload: { tokens: any; user?: User } }
+  | { type: 'LOGIN_SUCCESS'; payload: { tokens: { access: string; refresh: string; role?: string }; user?: User } }
   | { type: 'LOGOUT' }
   | { type: 'LOAD_DATA'; payload: Partial<AppState> }
   | { type: 'UPDATE_USER'; payload: User }

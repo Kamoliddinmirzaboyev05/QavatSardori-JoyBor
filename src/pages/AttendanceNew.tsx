@@ -81,7 +81,7 @@ const AttendanceNew: React.FC = () => {
       
       setStudents(sortedStudents);
       setFilteredStudents(sortedStudents);
-    } catch (err: any) {
+    } catch {
       toast.error('Talabalar ro\'yxatini yuklashda xatolik');
     } finally {
       setIsLoading(false);
@@ -96,54 +96,57 @@ const AttendanceNew: React.FC = () => {
     }));
   };
 
-  // Mark all students with same status
+  // Mark visible (filtered) students with same status
   const markAll = (status: 'in' | 'out') => {
     const newRecords: Record<number, 'in' | 'out'> = {};
     filteredStudents.forEach(student => {
       newRecords[student.id] = status;
     });
     setAttendanceRecords(prev => ({ ...prev, ...newRecords }));
-    toast.success(`Barcha talabalar ${status === 'in' ? 'bor' : 'yo\'q'} deb belgilandi`);
+    toast.success(
+      `Ko'rsatilgan ${filteredStudents.length} ta talaba ${status === 'in' ? 'bor' : "yo'q"} deb belgilandi`
+    );
   };
 
-  // Get statistics
-  const getStats = () => {
+  const getStatsFor = (list: Student[]) => {
     let present = 0;
     let absent = 0;
     let unmarked = 0;
 
-    filteredStudents.forEach(student => {
+    list.forEach(student => {
       const status = attendanceRecords[student.id];
       if (status === 'in') present++;
       else if (status === 'out') absent++;
       else unmarked++;
     });
 
-    return { present, absent, unmarked, total: filteredStudents.length };
+    return { present, absent, unmarked, total: list.length };
   };
 
-  // Save attendance using full-create endpoint
+  // Visible list stats (search filter) — UI only
+  const getStats = () => getStatsFor(filteredStudents);
+
+  // Save MUST use the full roster, never the search-filtered subset
   const saveAttendance = async () => {
-    const stats = getStats();
-    
-    if (stats.unmarked > 0) {
+    const allStats = getStatsFor(students);
+
+    if (allStats.unmarked > 0) {
       const confirmed = window.confirm(
-        `${stats.unmarked} ta talaba hali belgilanmagan. Davomatni saqlashni xohlaysizmi?`
+        `${allStats.unmarked} ta talaba (jami ${allStats.total} dan) hali belgilanmagan. Davomatni saqlashni xohlaysizmi?`
       );
       if (!confirmed) return;
     }
 
     setIsSaving(true);
     try {
-      // Prepare records for API - only include students with status
       const records: { student_id: number; status: 'in' | 'out' }[] = [];
-      
-      filteredStudents.forEach(student => {
+
+      students.forEach(student => {
         const status = attendanceRecords[student.id];
         if (status) {
           records.push({
             student_id: student.id,
-            status: status
+            status,
           });
         }
       });
@@ -154,17 +157,15 @@ const AttendanceNew: React.FC = () => {
         return;
       }
 
-
-      // Call full-create endpoint
-      const result = await apiService.fullCreateAttendanceSession({
+      await apiService.fullCreateAttendanceSession({
         date: selectedDate,
-        records: records
+        records,
       });
 
       toast.success('Davomat muvaffaqiyatli saqlandi!');
       navigate('/attendance');
-    } catch (err: any) {
-      toast.error(err.message || 'Davomat saqlashda xatolik yuz berdi');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Davomat saqlashda xatolik yuz berdi');
     } finally {
       setIsSaving(false);
     }
@@ -380,7 +381,7 @@ const AttendanceNew: React.FC = () => {
       >
         <Button
           onClick={saveAttendance}
-          disabled={isSaving || stats.total === 0}
+          disabled={isSaving || students.length === 0}
           className="w-full bg-surface-900 hover:bg-black text-white py-4 rounded-[5px] shadow-xl uppercase tracking-widest font-black text-xs"
         >
           {isSaving ? (

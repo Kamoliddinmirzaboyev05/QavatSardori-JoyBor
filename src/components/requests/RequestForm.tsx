@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import Button from '../common/Button';
-import { useApp } from '../../context/AppContext';
+import { toast } from 'sonner';
+import { apiService } from '../../services/api';
 
 const requestSchema = z.object({
   title: z.string().min(5, 'Sarlavha kamida 5 ta belgidan iborat bo\'lishi kerak'),
@@ -18,31 +19,20 @@ interface RequestFormProps {
 }
 
 const RequestForm: React.FC<RequestFormProps> = ({ onClose }) => {
-  const { state, dispatch } = useApp();
-  
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema)
   });
 
   const onSubmit = async (data: RequestFormData) => {
     try {
-      // For admin interface, we need to select a student
-      // For now, we'll use the first available student
-      const activeStudents = state.students.filter(s => !s.isDeleted);
-      if (activeStudents.length === 0) {
-        return;
-      }
-
-      dispatch({
-        type: 'ADD_REQUEST',
-        payload: {
-          ...data,
-          studentId: activeStudents[0].id, // This should be selected by admin
-          status: 'ochiq'
-        }
+      await apiService.createComplaint({
+        title: data.title,
+        description: data.content,
       });
+      toast.success("So'rov yuborildi");
       onClose();
     } catch (error) {
+      toast.error(error instanceof Error ? error.message : "So'rov yuborilmadi");
     }
   };
 

@@ -12,23 +12,31 @@ class ApiService {
     return headers;
   }
 
+  private refreshInFlight: Promise<boolean> | null = null;
+
   private async tryRefresh(): Promise<boolean> {
-    const refresh = sessionStorage.getItem('refresh_token');
-    if (!refresh) return false;
-    try {
-      const res = await fetch(`${API_ROOT}/token/refresh/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh }),
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      if (!data.access) return false;
-      sessionStorage.setItem('access_token', data.access);
-      return true;
-    } catch {
-      return false;
-    }
+    if (this.refreshInFlight) return this.refreshInFlight;
+    this.refreshInFlight = (async () => {
+      const refresh = sessionStorage.getItem('refresh_token');
+      if (!refresh) return false;
+      try {
+        const res = await fetch(`${API_ROOT}/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (!data.access) return false;
+        sessionStorage.setItem('access_token', data.access);
+        return true;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      this.refreshInFlight = null;
+    });
+    return this.refreshInFlight;
   }
 
   private async handleResponse(response: Response, retried = false): Promise<Json> {

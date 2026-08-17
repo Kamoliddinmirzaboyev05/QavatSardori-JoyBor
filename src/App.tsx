@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/common/Layout';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import PageTransition from './components/common/PageTransition';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -85,13 +86,15 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AppProvider>
-      <Router>
-        <div className="App">
-          <AppRoutes />
-        </div>
-      </Router>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <Router>
+          <div className="App">
+            <AppRoutes />
+          </div>
+        </Router>
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

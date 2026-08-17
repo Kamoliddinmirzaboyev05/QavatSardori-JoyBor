@@ -219,7 +219,7 @@ const AttendanceDetail: React.FC = () => {
           const sessionRecords = allRecords.filter(
             (r: { session?: number | string }) => String(r.session) === String(id)
           );
-          const useRecords = sessionRecords.length > 0 ? sessionRecords : allRecords;
+          const useRecords = sessionRecords;
           const sessionData = buildFromRecords(useRecords);
           setAttendanceSession(sessionData);
           setExpandedRooms(

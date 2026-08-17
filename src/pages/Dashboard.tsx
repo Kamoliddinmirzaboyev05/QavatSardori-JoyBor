@@ -341,7 +341,7 @@ const Dashboard: React.FC = () => {
             <Home className="w-5 h-5 mr-2 text-brand-600" />
             Xonalar holati
           </h3>
-          <Link to="/students" className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center">
+          <Link to="/attendance" className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center">
             Barchasi <ChevronRight className="w-4 h-4" />
           </Link>
         </div>

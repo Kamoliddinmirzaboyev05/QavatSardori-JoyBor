@@ -52,7 +52,11 @@ const Collections: React.FC = () => {
 
       const data = await apiService.getCollections();
       // Ensure data is an array and handle the API response properly
-      const collectionsArray = Array.isArray(data) ? data : [];
+      const collectionsArray: ApiCollection[] = Array.isArray(data)
+        ? (data as ApiCollection[])
+        : Array.isArray((data as { results?: ApiCollection[] })?.results)
+          ? ((data as { results: ApiCollection[] }).results)
+          : [];
       setCollections(collectionsArray);
       
       if (collectionsArray.length === 0) {

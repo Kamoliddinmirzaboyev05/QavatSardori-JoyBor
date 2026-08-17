@@ -37,10 +37,18 @@ interface CollectionDetailApi {
   created_at: string;
 }
 
-// Normalize status to strict ASCII values expected by backend
+// Normalize status to the two values the backend accepts
 const normalizeStatus = (value: string): "To'lagan" | "To'lamagan" => {
-  const v = (value || '').replace(/[`'ʻ`´]/g, "'");
-  if (v.toLowerCase().includes('lagan')) return "To'lagan";
+  const v = (value || '')
+    .toLowerCase()
+    .replace(/[`'ʻ`´]/g, "'")
+    .replace(/\s+/g, '');
+  if (v.includes("to'lamagan") || v.includes('tolamagan') || v.includes('unpaid') || v === '0') {
+    return "To'lamagan";
+  }
+  if (v.includes("to'lagan") || v.includes('tolagan') || v.includes('paid') || v === '1') {
+    return "To'lagan";
+  }
   return "To'lamagan";
 };
 
@@ -60,6 +68,9 @@ const CollectionDetails: React.FC = () => {
     setError(null);
     try {
       const data = await apiService.getCollection(id);
+      if (!data || !Array.isArray((data as CollectionDetailApi).rooms)) {
+        throw new Error("Yig'im tafsiloti topilmadi");
+      }
       setCollection(data);
       // Capture original statuses for change detection
       const map: Record<number, "To'lagan" | "To'lamagan"> = {};
@@ -157,15 +168,20 @@ const CollectionDetails: React.FC = () => {
       }
 
       if (changesCount > 0) {
-        await Promise.all(promises);
-        toast.success(`${changesCount} ta o'zgarish saqlandi`);
-        // Refresh data to ensure sync with server
+        const settled = await Promise.allSettled(promises);
+        const failed = settled.filter((r) => r.status === 'rejected').length;
+        const ok = settled.length - failed;
+        if (failed > 0) {
+          toast.error(`${ok} ta saqlandi, ${failed} tasi xato`);
+        } else {
+          toast.success(`${ok} ta o'zgarish saqlandi`);
+        }
         await fetchDetails();
       } else {
         toast.info('O\'zgarishlar yo\'q');
       }
-    } catch (err: any) {
-      const message = err.message || 'Saqlashda xatolik yuz berdi';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Saqlashda xatolik yuz berdi';
       setError(message);
       toast.error(message);
     } finally {

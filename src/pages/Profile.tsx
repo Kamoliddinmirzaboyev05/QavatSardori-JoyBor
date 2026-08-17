@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Lock, Save, Eye, EyeOff, Edit, Phone, Mail, Calendar } from 'lucide-react';
 import Card from '../components/common/Card';
@@ -18,9 +18,45 @@ const Profile: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: state.user?.name || '',
     lastName: state.user?.lastName || '',
-    phone: '+998 90 123 45 67',
-    email: 'sardor@example.com'
+    phone: '',
+    email: ''
   });
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const profile = (await apiService.getProfile()) as {
+          first_name?: string;
+          last_name?: string;
+          username?: string;
+          phone?: string;
+          email?: string;
+          user?: { first_name?: string; last_name?: string; phone?: string; email?: string };
+        };
+        if (cancelled) return;
+        const firstName = profile.first_name || profile.user?.first_name || profile.username || state.user?.name || '';
+        const lastName = profile.last_name || profile.user?.last_name || state.user?.lastName || '';
+        const phone = profile.phone || profile.user?.phone || '';
+        const email = profile.email || profile.user?.email || '';
+        setFormData({ firstName, lastName, phone, email });
+        setProfileLoaded(true);
+        if (state.user) {
+          updateUser({ ...state.user, name: firstName, lastName });
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Profil ma'lumotlarini yuklashda xatolik");
+        }
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -89,6 +125,11 @@ const Profile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!profileLoaded) {
+      toast.error("Profil hali yuklanmadi");
+      return;
+    }
 
     if (!validateForm()) {
       return;

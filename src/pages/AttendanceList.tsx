@@ -89,7 +89,12 @@ const AttendanceList: React.FC = () => {
             records: [],
           };
         }
-        sessionsMap[sessionId].records.push(record);
+        const alreadyHasEmbedded = (sessionsMap[sessionId].records || []).some(
+          (r) => r.id === record.id
+        );
+        if (!alreadyHasEmbedded) {
+          sessionsMap[sessionId].records.push(record);
+        }
       });
 
       Object.values(sessionsMap).forEach((session) => {
@@ -308,7 +313,9 @@ const AttendanceList: React.FC = () => {
 
                         <div className="mt-3 pt-3 border-t border-surface-50 flex justify-between items-center">
                           <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
-                            Yaratilgan: {new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                            Yaratilgan: {session.records?.[0]?.created_at
+                              ? new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
+                              : '—'}
                           </p>
                           <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
                             {session.total} ta talaba
