@@ -188,7 +188,7 @@ const Profile: React.FC = () => {
       toast.success("Parol muvaffaqiyatli o'zgartirildi");
     } catch (error) {
       // API da change-password endpoint yo'q — aniq xabar
-      let errorMessage =
+      const errorMessage =
         error instanceof Error
           ? error.message
           : "Parolni o'zgartirishda xatolik yuz berdi";

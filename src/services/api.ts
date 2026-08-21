@@ -168,10 +168,6 @@ class ApiService {
     return this.request('/floor-leader/dashboard/');
   }
 
-  async getLeaderStatistics() {
-    return this.request('/floor-leader/dashboard/');
-  }
-
   // ——— Students ———
   async getStudents(params?: { page?: number; floor?: number; search?: string }) {
     const sp = new URLSearchParams();
@@ -328,11 +324,7 @@ class ApiService {
     });
   }
 
-  // ——— Complaints (UI dagi "Requests") ———
-  async getRequests(params?: { status?: string; category?: string; page?: number }) {
-    return this.getComplaints(params);
-  }
-
+  // ——— Complaints ———
   async getComplaints(params?: { status?: string; category?: string; page?: number }) {
     const sp = new URLSearchParams();
     if (params?.status) sp.set('status', params.status);
@@ -340,14 +332,6 @@ class ApiService {
     if (params?.page) sp.set('page', String(params.page));
     const q = sp.toString();
     return this.request(`/complaints/${q ? `?${q}` : ''}`);
-  }
-
-  async createRequest(requestData: {
-    title: string;
-    description: string;
-    category?: string;
-  }) {
-    return this.createComplaint(requestData);
   }
 
   async createComplaint(data: {
@@ -361,13 +345,6 @@ class ApiService {
     });
   }
 
-  async updateRequest(requestId: string | number, requestData: Record<string, unknown>) {
-    return this.request(`/complaints/${requestId}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(requestData),
-    });
-  }
-
   async updateComplaint(id: string | number, data: Record<string, unknown>) {
     return this.request(`/complaints/${id}/`, {
       method: 'PATCH',
@@ -375,11 +352,7 @@ class ApiService {
     });
   }
 
-  // ——— Notifications (UI dagi "Announcements" o'qish) ———
-  async getAnnouncements() {
-    return this.getNotifications();
-  }
-
+  // ——— Notifications ———
   async getNotifications() {
     return this.request('/notifications/');
   }
@@ -448,22 +421,6 @@ class ApiService {
 
   async deleteDutySchedule(id: string | number) {
     return this.request(`/duty-schedules/${id}/`, { method: 'DELETE' });
-  }
-
-  // ——— Floor leaders ———
-  async getFloorLeaders(params?: { floor?: number; page?: number }) {
-    const sp = new URLSearchParams();
-    if (params?.floor) sp.set('floor', String(params.floor));
-    if (params?.page) sp.set('page', String(params.page));
-    const q = sp.toString();
-    return this.request(`/floor-leaders/${q ? `?${q}` : ''}`);
-  }
-
-  async createFloorLeader(leaderData: Record<string, unknown>) {
-    return this.request('/floor-leaders/', {
-      method: 'POST',
-      body: JSON.stringify(leaderData),
-    });
   }
 
   // ——— Tasks for leaders ———

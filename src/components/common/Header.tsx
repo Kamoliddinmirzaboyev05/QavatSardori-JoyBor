@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, LogOut, User, Settings, Edit } from 'lucide-react';
+import { ChevronDown, LogOut, User } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import PWAInstallButton from './PWAInstallButton';
 
 const Header: React.FC = () => {
   const { state, dispatch } = useApp();
@@ -50,8 +49,6 @@ const Header: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
           >
-            <PWAInstallButton />
-            
             <div className="relative">
               <motion.button
                 onClick={() => setShowUserMenu(!showUserMenu)}

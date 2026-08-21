@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '../context/AppContext';
-import { User } from '../types';
+import { User, DashboardData } from '../types';
 import apiService from '../services/api';
 
 const loginSchema = z.object({
@@ -64,7 +64,7 @@ const Login: React.FC = () => {
       sessionStorage.setItem('access_token', tokens.access);
       sessionStorage.setItem('refresh_token', tokens.refresh);
 
-      const profile = (await apiService.getProfile()) as {
+      type ProfileResponse = {
         id?: number;
         username?: string;
         first_name?: string;
@@ -74,6 +74,14 @@ const Login: React.FC = () => {
         floor_id?: number;
         user?: { id?: number; username?: string; last_name?: string; role?: string };
       };
+      // Profil va dashboard bir-biriga bog'liq emas — parallel yuklanadi (1 ta round-trip o'rniga)
+      const [profile, dashSettled] = await Promise.all([
+        apiService.getProfile() as Promise<ProfileResponse>,
+        apiService
+          .getDashboardData()
+          .then((d) => ({ ok: true as const, data: d as DashboardData }))
+          .catch((e) => ({ ok: false as const, error: e as Error })),
+      ]);
 
       const role = profile.role || profile.user?.role || tokens.role || '';
       // Rol aniq bo'lsa va qavat sardori bo'lmasa — darhol to'xtat
@@ -91,15 +99,9 @@ const Login: React.FC = () => {
             ? profile.floor_id
             : undefined;
 
-      try {
-        const dash = (await apiService.getDashboardData()) as {
-          floor?: { id?: number; name?: string };
-        };
-        if (dash?.floor?.id != null) floorId = dash.floor.id;
-      } catch (dashErr) {
+      if (!dashSettled.ok) {
         clearSession();
-        const msg =
-          dashErr instanceof Error ? dashErr.message : 'Dashboardga ruxsat yo‘q';
+        const msg = dashSettled.error?.message || 'Dashboardga ruxsat yo‘q';
         if (
           msg.toLowerCase().includes('sardori') ||
           msg.toLowerCase().includes('403') ||
@@ -112,6 +114,7 @@ const Login: React.FC = () => {
         }
         throw new Error(msg);
       }
+      if (dashSettled.data?.floor?.id != null) floorId = dashSettled.data.floor.id;
 
       const profileId = profile.id ?? profile.user?.id;
       const normalizedRole = isFloorLeaderRole(role) ? role : 'qavat_sardori';
@@ -126,6 +129,7 @@ const Login: React.FC = () => {
       };
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });
+      dispatch({ type: 'LOAD_DATA', payload: { dashboardData: dashSettled.data } });
       toast.success('Muvaffaqiyatli kirdingiz!');
     } catch (err) {
       clearSession();

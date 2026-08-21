@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Home, 
-  Calendar, 
-  ClipboardCheck, 
-  DollarSign, 
-  MessageCircle
+import {
+  Home,
+  Calendar,
+  ClipboardCheck,
+  DollarSign,
+  MessageCircle,
+  Users
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -18,6 +19,7 @@ const BottomNavigation: React.FC = () => {
     { path: '/duty-schedule', icon: Calendar, label: 'Navbatchilik' },
     { path: '/attendance', icon: ClipboardCheck, label: 'Davomat' },
     { path: '/collections', icon: DollarSign, label: 'Yig\'imlar' },
+    { path: '/students', icon: Users, label: 'Talabalar' },
     { path: '/communication', icon: MessageCircle, label: 'Aloqa' }
   ];
 
@@ -28,8 +30,8 @@ const BottomNavigation: React.FC = () => {
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="grid grid-cols-5 h-full max-w-md mx-auto">
-        {navItems.map(({ path, icon: Icon, label }, index) => {
+      <div className="grid grid-cols-6 h-full max-w-md mx-auto">
+        {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
           
           return (
@@ -44,7 +46,7 @@ const BottomNavigation: React.FC = () => {
               )}
             >
               <Icon className={clsx("w-5 h-5", isActive ? "mb-0.5" : "mb-1")} />
-              <span className="text-[10px] font-semibold tracking-tight leading-none uppercase">{label}</span>
+              <span className="text-[9px] font-semibold tracking-tight leading-none uppercase px-0.5 truncate max-w-full">{label}</span>
             </Link>
           );
         })}

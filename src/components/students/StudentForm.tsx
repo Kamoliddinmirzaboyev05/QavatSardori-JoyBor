@@ -88,7 +88,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose }) => {
       }
       onClose();
     } catch (error) {
-      toast.error('Talabani saqlashda xatolik yuz berdi');
+      toast.error(error instanceof Error ? error.message : 'Talabani saqlashda xatolik yuz berdi');
     }
   };
 

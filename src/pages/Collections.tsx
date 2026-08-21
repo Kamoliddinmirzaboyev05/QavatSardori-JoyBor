@@ -58,9 +58,6 @@ const Collections: React.FC = () => {
           ? ((data as { results: ApiCollection[] }).results)
           : [];
       setCollections(collectionsArray);
-      
-      if (collectionsArray.length === 0) {
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Yig\'imlarni yuklashda xatolik yuz berdi');
     } finally {

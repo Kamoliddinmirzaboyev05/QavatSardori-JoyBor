@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Users, Save, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, Save, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { formatDate } from '../utils/storage';
@@ -39,6 +39,35 @@ interface AttendanceSession {
   rooms: Room[];
 }
 
+/** Backend turlicha shakl qaytaradi: rooms-bilan tayyor session, records ro'yxati yoki sahifalangan natija */
+interface RawAttendanceRecord {
+  id: number;
+  session?: number | string;
+  student: number;
+  student_name?: string;
+  name?: string;
+  student_last_name?: string;
+  last_name?: string;
+  room?: number;
+  room_name?: string;
+  floor_name?: string;
+  status: string;
+  session_date?: string;
+  date?: string;
+}
+
+interface RawSessionResult {
+  id?: number;
+  date?: string;
+  floor?: number;
+  floor_name?: string;
+  leader?: number;
+  leader_name?: string;
+  records?: RawAttendanceRecord[];
+  rooms?: Room[];
+  results?: RawAttendanceRecord[];
+}
+
 const AttendanceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -46,7 +75,6 @@ const AttendanceDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [expandedRooms, setExpandedRooms] = useState<Set<number>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -73,8 +101,7 @@ const AttendanceDetail: React.FC = () => {
 
     // Clear any previous messages
     setError(null);
-    setSuccessMessage(null);
-    
+
     // Mark session as having unsaved changes
     setHasUnsavedChanges(true);
   };
@@ -88,13 +115,13 @@ const AttendanceDetail: React.FC = () => {
 
     try {
       // Prepare records array for API according to the Swagger documentation
-      const records: any[] = [];
+      const records: { id: number; student_id: number; status: 'in' | 'out' }[] = [];
 
       if (attendanceSession.rooms && Array.isArray(attendanceSession.rooms)) {
         attendanceSession.rooms.forEach(room => {
           if (room.students && Array.isArray(room.students)) {
             room.students.forEach(student => {
-              let apiStatus = '';
+              let apiStatus: '' | 'in' | 'out' = '';
               if (
                 student.status === 'Hozir' ||
                 student.status === 'Bor' ||
@@ -153,12 +180,15 @@ const AttendanceDetail: React.FC = () => {
 
     setIsLoading(true);
     try {
-      let result: any = await apiService.getAttendanceSession(id);
+      const raw = await apiService.getAttendanceSession(id);
 
       // Session detail: records array → rooms guruhlash
-      const buildFromRecords = (records: any[], sessionMeta: any = {}) => {
-        const byRoom = new Map<string, { room_id: number; room_name: string; students: any[] }>();
-        records.forEach((r: any, idx: number) => {
+      const buildFromRecords = (
+        records: RawAttendanceRecord[],
+        sessionMeta: RawSessionResult = {}
+      ): AttendanceSession => {
+        const byRoom = new Map<string, Room>();
+        records.forEach((r, idx) => {
           const roomName = r.room_name || r.floor_name || 'Xona';
           const key = roomName;
           if (!byRoom.has(key)) {
@@ -179,7 +209,7 @@ const AttendanceDetail: React.FC = () => {
           });
         });
         return {
-          id: sessionMeta.id || records[0]?.session || Number(id),
+          id: sessionMeta.id ?? Number(records[0]?.session ?? id),
           date: sessionMeta.date || records[0]?.session_date || records[0]?.date || '',
           floor: {
             id: sessionMeta.floor || 0,
@@ -194,37 +224,37 @@ const AttendanceDetail: React.FC = () => {
         };
       };
 
-      if (result && Array.isArray(result.records) && !result.rooms) {
-        result = buildFromRecords(result.records, result);
-      } else if (Array.isArray(result) || (result && !result.rooms && result.results)) {
-        const records = result.results || result;
-        if (Array.isArray(records) && records.length > 0) {
-          result = buildFromRecords(records);
+      // Backend uch xil shaklda qaytarishi mumkin: tayyor {rooms}, {records}/{results} bilan meta, yoki xom massiv
+      let session: AttendanceSession | null = null;
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        const obj = raw as RawSessionResult & { rooms?: Room[] };
+        if (obj.rooms) {
+          session = obj as AttendanceSession;
+        } else if (Array.isArray(obj.records)) {
+          session = buildFromRecords(obj.records, obj);
+        } else if (Array.isArray(obj.results) && obj.results.length > 0) {
+          session = buildFromRecords(obj.results);
         }
+      } else if (Array.isArray(raw) && raw.length > 0) {
+        session = buildFromRecords(raw as RawAttendanceRecord[]);
       }
 
-      if (result && result.rooms) {
-        setAttendanceSession(result);
-        const allRoomIds = new Set<number>(
-          result.rooms.map((room: { room_id: number }) => room.room_id)
-        );
-        setExpandedRooms(allRoomIds);
+      if (session) {
+        setAttendanceSession(session);
+        setExpandedRooms(new Set(session.rooms.map((room) => room.room_id)));
       } else {
-        const allRecordsRes: any = await apiService.getAttendanceRecords({
+        const allRecordsRes = (await apiService.getAttendanceRecords({
           session: Number(id),
-        });
-        const allRecords = allRecordsRes.results || allRecordsRes;
+        })) as RawAttendanceRecord[] | { results?: RawAttendanceRecord[] };
+        const allRecords = Array.isArray(allRecordsRes)
+          ? allRecordsRes
+          : allRecordsRes.results || [];
 
-        if (Array.isArray(allRecords) && allRecords.length > 0) {
-          const sessionRecords = allRecords.filter(
-            (r: { session?: number | string }) => String(r.session) === String(id)
-          );
-          const useRecords = sessionRecords;
-          const sessionData = buildFromRecords(useRecords);
+        const sessionRecords = allRecords.filter((r) => String(r.session) === String(id));
+        if (sessionRecords.length > 0) {
+          const sessionData = buildFromRecords(sessionRecords);
           setAttendanceSession(sessionData);
-          setExpandedRooms(
-            new Set(sessionData.rooms.map((r: { room_id: number }) => r.room_id))
-          );
+          setExpandedRooms(new Set(sessionData.rooms.map((r) => r.room_id)));
         } else {
           setError("Davomat sessiyasi ma'lumotlari topilmadi");
         }
@@ -243,6 +273,7 @@ const AttendanceDetail: React.FC = () => {
     } else {
       fetchAttendanceSession();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Get status statistics for session
@@ -388,7 +419,17 @@ const AttendanceDetail: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-surface-900 text-lg">{room.room_name}</h3>
-                    <p className="text-sm text-surface-600">{room.students.length} ta talaba</p>
+                    <p className="text-sm text-surface-600">
+                      {room.students.length} ta talaba
+                      {roomStats.total > 0 && (
+                        <span className="ml-2 text-xs">
+                          <span className="text-success-600 font-medium">{roomStats.present} bor</span>
+                          {roomStats.absent > 0 && (
+                            <span className="text-danger-600 font-medium"> · {roomStats.absent} yo'q</span>
+                          )}
+                        </span>
+                      )}
+                    </p>
                   </div>
                   {isExpanded ? (
                     <ChevronUp className="w-5 h-5 text-surface-400" />
@@ -410,9 +451,7 @@ const AttendanceDetail: React.FC = () => {
                               <p className="font-medium text-surface-900 text-lg">
                                 {student.student.name} {student.student.last_name}
                               </p>
-                              <p className="text-xs text-surface-500 mt-1">
-                                Record ID: {student.id} | Student ID: {student.student.id} | Status: {student.status}
-                              </p>
+                              <p className="text-xs text-surface-500 mt-1">{student.status}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <button
@@ -459,7 +498,10 @@ const AttendanceDetail: React.FC = () => {
       </div>
 
       {/* Save Button at the end (non-fixed) */}
-      <div className="pt-2">
+      <div className="pt-2 space-y-2">
+        {hasUnsavedChanges && !isSaving && (
+          <p className="text-xs text-warning-600 text-center font-medium">Saqlanmagan o'zgarishlar bor</p>
+        )}
         <Button
           onClick={saveAttendance}
           disabled={isSaving}

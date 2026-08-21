@@ -22,14 +22,14 @@ interface CollectionFormProps {
 }
 
 const CollectionForm: React.FC<CollectionFormProps> = ({ onClose, onSuccess }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<CollectionFormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CollectionFormData>({
     resolver: zodResolver(collectionSchema),
     defaultValues: {
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     }
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CollectionFormData) => {
     try {
       const payload = {
         title: data.title,
@@ -41,8 +41,8 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onClose, onSuccess }) =
       await apiService.createCollection(payload);
       if (onSuccess) onSuccess();
       onClose();
-    } catch (error: any) {
-      toast.error(error.message || 'Yig\'im yaratishda xatolik yuz berdi');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Yig\'im yaratishda xatolik yuz berdi');
     }
   };
 

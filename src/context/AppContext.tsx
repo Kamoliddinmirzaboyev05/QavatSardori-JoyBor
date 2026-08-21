@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { AppState, Student, AttendanceRecord, Collection, Payment, Announcement, AnnouncementRead, Request, User } from '../types';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, ReactNode } from 'react';
+import { AppState, Student, User, DashboardData } from '../types';
 import { generateId } from '../utils/storage';
 import apiService from '../services/api';
 
@@ -10,26 +10,11 @@ type AppAction =
   | { type: 'UPDATE_USER'; payload: User }
   | { type: 'ADD_STUDENT'; payload: Omit<Student, 'id' | 'createdAt'> }
   | { type: 'UPDATE_STUDENT'; payload: Student }
-  | { type: 'DELETE_STUDENT'; payload: string }
-  | { type: 'ADD_ATTENDANCE'; payload: Omit<AttendanceRecord, 'id' | 'createdAt'> }
-  | { type: 'UPDATE_ATTENDANCE'; payload: AttendanceRecord }
-  | { type: 'ADD_COLLECTION'; payload: Omit<Collection, 'id' | 'createdAt'> }
-  | { type: 'ADD_PAYMENT'; payload: Omit<Payment, 'id' | 'createdAt'> }
-  | { type: 'UPDATE_PAYMENT'; payload: Payment }
-  | { type: 'ADD_ANNOUNCEMENT'; payload: Omit<Announcement, 'id' | 'createdAt'> }
-  | { type: 'ADD_REQUEST'; payload: Omit<Request, 'id' | 'createdAt'> }
-  | { type: 'UPDATE_REQUEST'; payload: Request }
-  | { type: 'MARK_ANNOUNCEMENT_READ'; payload: { announcementId: string; studentId: string } };
+  | { type: 'DELETE_STUDENT'; payload: string };
 
 const initialState: AppState = {
   isAuthenticated: false,
   students: [],
-  attendance: [],
-  collections: [],
-  payments: [],
-  announcements: [],
-  announcementReads: [],
-  requests: []
 };
 
 const AppContext = createContext<{
@@ -97,120 +82,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         )
       };
 
-    case 'ADD_ATTENDANCE': {
-      if (!action.payload) return state;
-      const newAttendance: AttendanceRecord = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      return { ...state, attendance: [...state.attendance, newAttendance] };
-    }
-
-    case 'UPDATE_ATTENDANCE':
-      if (!action.payload) return state;
-      return {
-        ...state,
-        attendance: state.attendance.map(record =>
-          record.id === action.payload.id ? action.payload : record
-        )
-      };
-
-    case 'ADD_COLLECTION': {
-      if (!action.payload) return state;
-      const newCollection: Collection = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      const newPayments: Payment[] = state.students
-        .filter(student => !student.isDeleted)
-        .map(student => ({
-          id: generateId(),
-          collectionId: newCollection.id,
-          studentId: student.id,
-          amount: action.payload.amount,
-          isPaid: false,
-          createdAt: new Date().toISOString()
-        }));
-
-      return {
-        ...state,
-        collections: [...state.collections, newCollection],
-        payments: [...state.payments, ...newPayments]
-      };
-    }
-
-    case 'ADD_PAYMENT': {
-      if (!action.payload) return state;
-      const newPayment: Payment = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      return { ...state, payments: [...state.payments, newPayment] };
-    }
-
-    case 'UPDATE_PAYMENT':
-      if (!action.payload) return state;
-      return {
-        ...state,
-        payments: state.payments.map(payment =>
-          payment.id === action.payload.id ? action.payload : payment
-        )
-      };
-
-    case 'ADD_ANNOUNCEMENT': {
-      if (!action.payload) return state;
-      const newAnnouncement: Announcement = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      return { ...state, announcements: [...state.announcements, newAnnouncement] };
-    }
-
-    case 'ADD_REQUEST': {
-      if (!action.payload) return state;
-      const newRequest: Request = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      return { ...state, requests: [...state.requests, newRequest] };
-    }
-
-    case 'UPDATE_REQUEST':
-      if (!action.payload) return state;
-      return {
-        ...state,
-        requests: state.requests.map(request =>
-          request.id === action.payload.id ? { ...action.payload, updatedAt: new Date().toISOString() } : request
-        )
-      };
-
-    case 'MARK_ANNOUNCEMENT_READ': {
-      if (!action.payload) return state;
-      const existingRead = state.announcementReads.find(
-        read => read.announcementId === action.payload.announcementId &&
-          read.studentId === action.payload.studentId
-      );
-
-      if (existingRead) return state;
-
-      const newRead = {
-        id: generateId(),
-        announcementId: action.payload.announcementId,
-        studentId: action.payload.studentId,
-        readAt: new Date().toISOString()
-      };
-
-      return {
-        ...state,
-        announcementReads: [...state.announcementReads, newRead]
-      };
-    }
-
     default:
       return state;
   }
@@ -219,9 +90,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  const updateUser = (user: User) => {
+  const updateUser = useCallback((user: User) => {
     dispatch({ type: 'UPDATE_USER', payload: user });
-  };
+  }, []);
 
   // Token + floor-leader ruxsatini tekshir (localStorage mock yo‘q)
   useEffect(() => {
@@ -231,11 +102,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let cancelled = false;
     (async () => {
       try {
-        await apiService.getDashboardData();
+        const dashboardData = (await apiService.getDashboardData()) as DashboardData;
         if (cancelled) return;
         dispatch({
           type: 'LOAD_DATA',
-          payload: { isAuthenticated: true },
+          payload: { isAuthenticated: true, dashboardData },
         });
       } catch {
         sessionStorage.removeItem('access_token');
@@ -308,11 +179,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   }, [state.isAuthenticated]);
 
-  return (
-    <AppContext.Provider value={{ state, dispatch, updateUser }}>
-      {children}
-    </AppContext.Provider>
-  );
+  const value = useMemo(() => ({ state, dispatch, updateUser }), [state, updateUser]);
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useApp = () => {

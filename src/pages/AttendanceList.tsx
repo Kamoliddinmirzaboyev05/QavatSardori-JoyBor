@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-react';
+import { Users, Calendar, ChevronRight } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { formatDate, getCurrentDate } from '../utils/storage';
+import { formatDate } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
-import { useApp } from '../context/AppContext';
 
 interface AttendanceRecord {
   id: number;
@@ -32,7 +31,6 @@ interface GroupedSession {
 
 const AttendanceList: React.FC = () => {
   const navigate = useNavigate();
-  const { state } = useApp();
   const [groupedSessions, setGroupedSessions] = useState<GroupedSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,9 +116,9 @@ const AttendanceList: React.FC = () => {
 
       setGroupedSessions(sessions);
 
-    } catch (err: any) {
+    } catch (err) {
       setGroupedSessions([]);
-      setError(err.message || 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
+      setError(err instanceof Error ? err.message : 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
     }
