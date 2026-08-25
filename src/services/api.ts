@@ -194,25 +194,6 @@ class ApiService {
     return results;
   }
 
-  async createStudent(studentData: Record<string, unknown>) {
-    return this.request('/students/create/', {
-      method: 'POST',
-      body: JSON.stringify(studentData),
-    });
-  }
-
-  async updateStudent(studentId: string | number, studentData: Record<string, unknown>) {
-    return this.request(`/students/${studentId}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(studentData),
-    });
-  }
-
-  async deleteStudent(studentId: string | number) {
-    await this.request(`/students/${studentId}/`, { method: 'DELETE' });
-    return true;
-  }
-
   // ——— Attendance sessions ———
   async fullCreateAttendanceSession(data: {
     date: string;

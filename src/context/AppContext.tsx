@@ -7,10 +7,7 @@ type AppAction =
   | { type: 'LOGIN_SUCCESS'; payload: { tokens: { access: string; refresh: string; role?: string }; user?: User } }
   | { type: 'LOGOUT' }
   | { type: 'LOAD_DATA'; payload: Partial<AppState> }
-  | { type: 'UPDATE_USER'; payload: User }
-  | { type: 'ADD_STUDENT'; payload: Omit<Student, 'id' | 'createdAt'> }
-  | { type: 'UPDATE_STUDENT'; payload: Student }
-  | { type: 'DELETE_STUDENT'; payload: string };
+  | { type: 'UPDATE_USER'; payload: User };
 
 const initialState: AppState = {
   isAuthenticated: false,
@@ -53,33 +50,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         user: action.payload
-      };
-
-    case 'ADD_STUDENT': {
-      if (!action.payload) return state;
-      const newStudent: Student = {
-        ...action.payload,
-        id: generateId(),
-        createdAt: new Date().toISOString()
-      };
-      return { ...state, students: [...state.students, newStudent] };
-    }
-
-    case 'UPDATE_STUDENT':
-      if (!action.payload) return state;
-      return {
-        ...state,
-        students: state.students.map(student =>
-          student.id === action.payload.id ? action.payload : student
-        )
-      };
-
-    case 'DELETE_STUDENT':
-      return {
-        ...state,
-        students: state.students.map(student =>
-          student.id === action.payload ? { ...student, isDeleted: true } : student
-        )
       };
 
     default:
