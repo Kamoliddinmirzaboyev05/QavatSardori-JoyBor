@@ -178,6 +178,22 @@ class ApiService {
     return this.request(`/students/${q ? `?${q}` : ''}`);
   }
 
+  /** Qidiruv/navbatchilik uchun to'liq ro'yxat kerak — sahifalarni to'liq yig'ib qaytaradi. */
+  async getAllStudents(): Promise<unknown[]> {
+    const results: unknown[] = [];
+    let page = 1;
+    while (page <= 40) {
+      const data = (await this.request(`/students/?page=${page}&page_size=100`)) as
+        | { results?: unknown[]; next?: string | null }
+        | unknown[];
+      const batch = Array.isArray(data) ? data : data?.results ?? [];
+      results.push(...batch);
+      if (Array.isArray(data) || !data.next || batch.length === 0) break;
+      page += 1;
+    }
+    return results;
+  }
+
   async createStudent(studentData: Record<string, unknown>) {
     return this.request('/students/create/', {
       method: 'POST',
@@ -223,9 +239,9 @@ class ApiService {
     const sp = new URLSearchParams();
     if (params?.floor) sp.set('floor', String(params.floor));
     if (params?.date) sp.set('date', params.date);
-    if (params?.page) sp.set('page', String(params.page));
-    const q = sp.toString();
-    return this.request(`/attendance-sessions/${q ? `?${q}` : ''}`);
+    sp.set('page', String(params?.page || 1));
+    sp.set('page_size', '100');
+    return this.request(`/attendance-sessions/?${sp.toString()}`);
   }
 
   async getAttendanceSession(sessionId: string | number) {
@@ -243,9 +259,9 @@ class ApiService {
     if (params?.session) sp.set('session', String(params.session));
     if (params?.student) sp.set('student', String(params.student));
     if (params?.status) sp.set('status', params.status);
-    if (params?.page) sp.set('page', String(params.page));
-    const q = sp.toString();
-    return this.request(`/attendance-records/${q ? `?${q}` : ''}`);
+    sp.set('page', String(params?.page || 1));
+    sp.set('page_size', '100');
+    return this.request(`/attendance-records/?${sp.toString()}`);
   }
 
   /** Bitta yozuvni yangilash */
@@ -260,29 +276,27 @@ class ApiService {
   }
 
   /**
-   * Bulk update — API da bulk yo'q; har bir yozuvni alohida PATCH qiladi.
+   * Bulk update — API da bulk yo'q; har bir yozuvni alohida PATCH qiladi (parallel).
    * records: [{ id, status }] yoki [{ student_id, status }] (id bo'lsa afzal)
    */
   async updateAttendanceRecords(
     _sessionId: string,
     records: Array<{ id?: number; student_id?: number; status: 'in' | 'out' }>
   ) {
-    const results = [];
-    for (const rec of records) {
-      if (rec.id != null) {
-        results.push(await this.updateAttendanceRecord(rec.id, { status: rec.status }));
-      }
-    }
-    return results;
+    return Promise.all(
+      records
+        .filter((rec) => rec.id != null)
+        .map((rec) => this.updateAttendanceRecord(rec.id as number, { status: rec.status }))
+    );
   }
 
   // ——— Collections ———
   async getCollections(params?: { floor?: number; page?: number }) {
     const sp = new URLSearchParams();
     if (params?.floor) sp.set('floor', String(params.floor));
-    if (params?.page) sp.set('page', String(params.page));
-    const q = sp.toString();
-    return this.request(`/collections/${q ? `?${q}` : ''}`);
+    sp.set('page', String(params?.page || 1));
+    sp.set('page_size', '100');
+    return this.request(`/collections/?${sp.toString()}`);
   }
 
   async getCollection(collectionId: string | number) {
@@ -324,31 +338,33 @@ class ApiService {
     });
   }
 
-  // ——— Complaints ———
-  async getComplaints(params?: { status?: string; category?: string; page?: number }) {
+  // ——— Complaints (sardor -> admin) ———
+  async getMyComplaints(params?: { type?: string; status?: string; category?: string; page?: number }) {
     const sp = new URLSearchParams();
+    if (params?.type) sp.set('type', params.type);
     if (params?.status) sp.set('status', params.status);
     if (params?.category) sp.set('category', params.category);
     if (params?.page) sp.set('page', String(params.page));
     const q = sp.toString();
-    return this.request(`/complaints/${q ? `?${q}` : ''}`);
+    return this.request(`/floor-leader/my-complaints/${q ? `?${q}` : ''}`);
   }
 
-  async createComplaint(data: {
+  async sendComplaint(data: {
+    type: 'complaint' | 'suggestion';
+    category?: string;
     title: string;
     description: string;
-    category?: string;
+    image?: File | null;
   }) {
-    return this.request('/complaints/', {
+    const form = new FormData();
+    form.append('type', data.type);
+    if (data.category) form.append('category', data.category);
+    form.append('title', data.title);
+    form.append('description', data.description);
+    if (data.image) form.append('image', data.image);
+    return this.request('/floor-leader/complaints/to-admin/', {
       method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateComplaint(id: string | number, data: Record<string, unknown>) {
-    return this.request(`/complaints/${id}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
+      body: form,
     });
   }
 
@@ -400,9 +416,9 @@ class ApiService {
   // ——— Duty schedules ———
   async getDutySchedules(params?: { page?: number }) {
     const sp = new URLSearchParams();
-    if (params?.page) sp.set('page', String(params.page));
-    const q = sp.toString();
-    return this.request(`/duty-schedules/${q ? `?${q}` : ''}`);
+    sp.set('page', String(params?.page || 1));
+    sp.set('page_size', '100');
+    return this.request(`/duty-schedules/?${sp.toString()}`);
   }
 
   async createDutySchedule(data: { date: string; floor: number; room: number }) {

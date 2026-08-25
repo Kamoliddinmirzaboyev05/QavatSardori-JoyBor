@@ -130,15 +130,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let cancelled = false;
     (async () => {
       try {
-        const response = await apiService.getStudents();
-        const studentsData = Array.isArray(response)
-          ? response
-          : response &&
-              typeof response === 'object' &&
-              Array.isArray((response as { results?: unknown }).results)
-            ? (response as { results: unknown[] }).results
-            : [];
-        if (cancelled || !Array.isArray(studentsData)) return;
+        const studentsData = await apiService.getAllStudents();
+        if (cancelled) return;
 
         const students: Student[] = studentsData.map((raw) => {
           const s = raw as {
