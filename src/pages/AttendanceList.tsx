@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Users, Calendar, ChevronRight } from 'lucide-react';
+import { Users, Calendar, ChevronRight } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { formatDate, getCurrentDate } from '../utils/storage';
+import { formatDate } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/api';
-import { useApp } from '../context/AppContext';
 
 interface AttendanceRecord {
   id: number;
@@ -32,7 +31,6 @@ interface GroupedSession {
 
 const AttendanceList: React.FC = () => {
   const navigate = useNavigate();
-  const { state } = useApp();
   const [groupedSessions, setGroupedSessions] = useState<GroupedSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +87,12 @@ const AttendanceList: React.FC = () => {
             records: [],
           };
         }
-        sessionsMap[sessionId].records.push(record);
+        const alreadyHasEmbedded = (sessionsMap[sessionId].records || []).some(
+          (r) => r.id === record.id
+        );
+        if (!alreadyHasEmbedded) {
+          sessionsMap[sessionId].records.push(record);
+        }
       });
 
       Object.values(sessionsMap).forEach((session) => {
@@ -113,9 +116,9 @@ const AttendanceList: React.FC = () => {
 
       setGroupedSessions(sessions);
 
-    } catch (err: any) {
+    } catch (err) {
       setGroupedSessions([]);
-      setError(err.message || 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
+      setError(err instanceof Error ? err.message : 'Davomat ma\'lumotlarini yuklashda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
     }
@@ -308,7 +311,9 @@ const AttendanceList: React.FC = () => {
 
                         <div className="mt-3 pt-3 border-t border-surface-50 flex justify-between items-center">
                           <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
-                            Yaratilgan: {new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                            Yaratilgan: {session.records?.[0]?.created_at
+                              ? new Date(session.records[0].created_at).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
+                              : '—'}
                           </p>
                           <p className="text-[9px] text-surface-400 uppercase font-bold tracking-tighter">
                             {session.total} ta talaba

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Users, 
-  CheckCircle, 
-  DollarSign, 
-  ClipboardList, 
-  Calendar, 
-  TrendingUp, 
+  Users,
+  CheckCircle,
+  DollarSign,
+  ClipboardList,
+  TrendingUp,
   Home, 
   User, 
   Building2,
@@ -24,8 +23,9 @@ import type { DashboardData } from '../types';
 
 const Dashboard: React.FC = () => {
   const { state } = useApp();
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  // Login/AppContext allaqachon dashboard'ni yuklagan — bor bo'lsa qayta so'ramaymiz
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(state.dashboardData ?? null);
+  const [loading, setLoading] = useState<boolean>(!state.dashboardData);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDashboardData = async () => {
@@ -34,15 +34,16 @@ const Dashboard: React.FC = () => {
     try {
       const data = await apiService.getDashboardData();
       setDashboardData(data as DashboardData);
-    } catch (e: any) {
-      setError(e?.message || 'Ma\'lumotlarni yuklashda xatolik yuz berdi');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ma'lumotlarni yuklashda xatolik yuz berdi");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    if (!state.dashboardData) fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const containerVariants = {
@@ -341,13 +342,13 @@ const Dashboard: React.FC = () => {
             <Home className="w-5 h-5 mr-2 text-brand-600" />
             Xonalar holati
           </h3>
-          <Link to="/students" className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center">
+          <Link to="/attendance" className="text-sm font-bold text-brand-600 hover:text-brand-700 flex items-center">
             Barchasi <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {students.by_room.map((room, index) => (
+          {students.by_room.map((room) => (
             <motion.div
               key={room.room}
               variants={itemVariants}

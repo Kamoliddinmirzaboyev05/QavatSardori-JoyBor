@@ -146,16 +146,32 @@ const DutySchedule: React.FC = () => {
     setSelectedRoom('');
   };
 
-  const markDutyCompleted = (dutyId: string) => {
+  const persistDutyStatus = async (dutyId: string, status: 'bajarilgan' | 'bajarilmagan') => {
+    const previous = dutyAssignments.find((d) => d.id === dutyId);
     setDutyAssignments((prev) =>
-      prev.map((duty) => (duty.id === dutyId ? { ...duty, status: 'bajarilgan' } : duty))
+      prev.map((duty) => (duty.id === dutyId ? { ...duty, status } : duty))
     );
+    try {
+      await apiService.updateDutySchedule(dutyId, {
+        status: status === 'bajarilgan' ? 'completed' : 'not_completed',
+        is_completed: status === 'bajarilgan',
+      });
+    } catch (e) {
+      if (previous) {
+        setDutyAssignments((prev) =>
+          prev.map((duty) => (duty.id === dutyId ? previous : duty))
+        );
+      }
+      toast.error(e instanceof Error ? e.message : 'Holat saqlanmadi');
+    }
+  };
+
+  const markDutyCompleted = (dutyId: string) => {
+    void persistDutyStatus(dutyId, 'bajarilgan');
   };
 
   const markDutyNotCompleted = (dutyId: string) => {
-    setDutyAssignments((prev) =>
-      prev.map((duty) => (duty.id === dutyId ? { ...duty, status: 'bajarilmagan' } : duty))
-    );
+    void persistDutyStatus(dutyId, 'bajarilmagan');
   };
 
   const getStatusIcon = (status: string) => {

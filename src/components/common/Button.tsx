@@ -22,7 +22,7 @@ const Button: React.FC<ButtonProps> = ({
   isLoading = false,
   className
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-bold uppercase tracking-widest transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center font-bold uppercase tracking-widest transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variantClasses = {
     primary: 'bg-surface-900 text-white hover:bg-black',

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Edit, Trash2, Phone, MapPin } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -38,7 +38,7 @@ const Students: React.FC = () => {
         dispatch({ type: 'DELETE_STUDENT', payload: studentId });
         toast.success('Talaba o\'chirildi');
       } catch (error) {
-        toast.error('Talabani o\'chirishda xatolik yuz berdi');
+        toast.error(error instanceof Error ? error.message : 'Talabani o\'chirishda xatolik yuz berdi');
       }
     }
   };

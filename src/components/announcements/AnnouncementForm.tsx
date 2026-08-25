@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { X } from 'lucide-react';
 import Button from '../common/Button';
 import { useApp } from '../../context/AppContext';
+import { toast } from 'sonner';
+import { apiService } from '../../services/api';
 
 const announcementSchema = z.object({
   title: z.string().min(3, 'Sarlavha kamida 3 ta belgidan iborat bo\'lishi kerak'),
@@ -20,7 +22,7 @@ interface AnnouncementFormProps {
 }
 
 const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: onSubmitProp }) => {
-  const { dispatch } = useApp();
+  const { state } = useApp();
   
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema)
@@ -32,12 +34,20 @@ const AnnouncementForm: React.FC<AnnouncementFormProps> = ({ onClose, onSubmit: 
         await onSubmitProp(data);
         return;
       }
-      dispatch({
-        type: 'ADD_ANNOUNCEMENT',
-        payload: data
+      const userId = state.user?.id ? Number(state.user.id) : undefined;
+      if (!userId || Number.isNaN(userId)) {
+        toast.error("Foydalanuvchi ID topilmadi — qayta kiring");
+        return;
+      }
+      await apiService.createAnnouncement({
+        title: data.title,
+        content: data.content,
+        user: userId,
       });
+      toast.success("E'lon yaratildi");
       onClose();
     } catch (error) {
+      toast.error(error instanceof Error ? error.message : "E'lon yuborilmadi");
     }
   };
 

@@ -3,18 +3,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '../context/AppContext';
-import { User } from '../types';
-
+import { User, DashboardData } from '../types';
 import apiService from '../services/api';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Foydalanuvchi nomi talab qilinadi'),
-  password: z.string().min(1, 'Parol talab qilinadi')
+  password: z.string().min(1, 'Parol talab qilinadi'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -25,12 +22,16 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: '',
-      password: ''
-    }
+      password: '',
+    },
   });
 
   const clearSession = () => {
@@ -63,7 +64,7 @@ const Login: React.FC = () => {
       sessionStorage.setItem('access_token', tokens.access);
       sessionStorage.setItem('refresh_token', tokens.refresh);
 
-      const profile = (await apiService.getProfile()) as {
+      type ProfileResponse = {
         id?: number;
         username?: string;
         first_name?: string;
@@ -73,6 +74,14 @@ const Login: React.FC = () => {
         floor_id?: number;
         user?: { id?: number; username?: string; last_name?: string; role?: string };
       };
+      // Profil va dashboard bir-biriga bog'liq emas — parallel yuklanadi (1 ta round-trip o'rniga)
+      const [profile, dashSettled] = await Promise.all([
+        apiService.getProfile() as Promise<ProfileResponse>,
+        apiService
+          .getDashboardData()
+          .then((d) => ({ ok: true as const, data: d as DashboardData }))
+          .catch((e) => ({ ok: false as const, error: e as Error })),
+      ]);
 
       const role = profile.role || profile.user?.role || tokens.role || '';
       // Rol aniq bo'lsa va qavat sardori bo'lmasa — darhol to'xtat
@@ -83,8 +92,6 @@ const Login: React.FC = () => {
         );
       }
 
-      // Haqiqiy ruxsat: /floor-leader/dashboard/ (admin/token bo'lsa 403)
-      // getFloorLeaders() admin endpoint — sardor uchun 403 beradi, chaqirilmaydi
       let floorId: number | undefined =
         typeof profile.floor === 'number'
           ? profile.floor
@@ -92,15 +99,9 @@ const Login: React.FC = () => {
             ? profile.floor_id
             : undefined;
 
-      try {
-        const dash = (await apiService.getDashboardData()) as {
-          floor?: { id?: number; name?: string };
-        };
-        if (dash?.floor?.id != null) floorId = dash.floor.id;
-      } catch (dashErr) {
+      if (!dashSettled.ok) {
         clearSession();
-        const msg =
-          dashErr instanceof Error ? dashErr.message : 'Dashboardga ruxsat yo‘q';
+        const msg = dashSettled.error?.message || 'Dashboardga ruxsat yo‘q';
         if (
           msg.toLowerCase().includes('sardori') ||
           msg.toLowerCase().includes('403') ||
@@ -113,6 +114,7 @@ const Login: React.FC = () => {
         }
         throw new Error(msg);
       }
+      if (dashSettled.data?.floor?.id != null) floorId = dashSettled.data.floor.id;
 
       const profileId = profile.id ?? profile.user?.id;
       const normalizedRole = isFloorLeaderRole(role) ? role : 'qavat_sardori';
@@ -127,6 +129,7 @@ const Login: React.FC = () => {
       };
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: { tokens, user: userDetails } });
+      dispatch({ type: 'LOAD_DATA', payload: { dashboardData: dashSettled.data } });
       toast.success('Muvaffaqiyatli kirdingiz!');
     } catch (err) {
       clearSession();
@@ -138,147 +141,100 @@ const Login: React.FC = () => {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 100
-      }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.9, y: 50 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  };
-
   return (
-    <motion.div
-      className="min-h-screen bg-surface-50 flex items-center justify-center p-4"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-brand-100 dark:from-surface-950 dark:via-surface-900 dark:to-surface-950 px-4 py-8">
       <motion.div
-        className="w-full max-w-md"
-        variants={cardVariants}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white dark:bg-surface-900 rounded-2xl shadow-sm p-6 sm:p-8 w-full max-w-md border border-surface-200 dark:border-surface-800"
       >
-        <Card className="p-8 shadow-sm border border-surface-200 bg-white">
-          <motion.div
-            className="text-center mb-10"
-            variants={itemVariants}
-          >
+        <div className="mb-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-white dark:bg-surface-800 rounded-2xl flex items-center justify-center shadow-sm border border-surface-100 dark:border-surface-700 p-3">
+            <img src="/logoicon.svg" alt="JoyBor Logo" className="w-full h-full object-contain" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white font-sans tracking-tight">
+            Xush kelibsiz!
+          </h2>
+          <p className="text-surface-500 dark:text-surface-400 text-sm sm:text-base mt-2 font-sans">
+            JoyBor Qavat sardori paneliga kirish
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+          {error && (
             <motion.div
-              className="bg-surface-900 w-16 h-16 rounded-[5px] flex items-center justify-center mx-auto mb-6"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring" as const, stiffness: 400 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-danger-700 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800/50 rounded-xl px-3.5 py-2.5 text-center font-medium"
             >
-              <LogIn className="w-8 h-8 text-white" />
+              {error}
             </motion.div>
-            <h1 className="text-2xl font-bold text-surface-900 mb-2 uppercase tracking-tight">Qavat sardori</h1>
-            <p className="text-[10px] font-bold text-surface-500 uppercase tracking-widest">Tizimga kirish</p>
-          </motion.div>
+          )}
 
-          <motion.form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6"
-            variants={itemVariants}
-          >
-            <div>
-              <label className="block text-[10px] font-bold text-surface-500 uppercase tracking-widest mb-2">
-                Foydalanuvchi nomi
-              </label>
-              <input
-                {...register('username')}
-                type="text"
-                className="w-full px-4 py-3 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-surface-900 focus:border-surface-900 transition-all duration-200 text-sm"
-                placeholder="Foydalanuvchi nomi"
-              />
-              {errors.username && (
-                <motion.p
-                  className="text-danger-600 text-[10px] font-bold uppercase mt-1"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  {errors.username.message}
-                </motion.p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-surface-500 uppercase tracking-widest mb-2">
-                Parol
-              </label>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
-                  className="w-full px-4 py-3 border border-surface-300 rounded-[5px] focus:outline-none focus:ring-1 focus:ring-surface-900 focus:border-surface-900 transition-all duration-200 text-sm"
-                  placeholder="Parol"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.password && (
-                <motion.p
-                  className="text-danger-600 text-[10px] font-bold uppercase mt-1"
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  {errors.password.message}
-                </motion.p>
-              )}
-            </div>
-
-            {error && (
-              <motion.div
-                className="p-3 bg-danger-50 border border-danger-100 rounded-[5px]"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <p className="text-[10px] font-bold text-danger-600 uppercase text-center">{error}</p>
-              </motion.div>
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-surface-900 dark:text-surface-200 mb-1 font-sans">
+              Login (Foydalanuvchi nomi)
+            </label>
+            <input
+              {...register('username')}
+              type="text"
+              className={`w-full px-3.5 sm:px-4 py-2.5 rounded-xl border ${
+                errors.username ? 'border-danger-500' : 'border-surface-300 dark:border-surface-700'
+              } bg-white dark:bg-surface-800 text-surface-900 dark:text-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-600 outline-none font-sans text-sm sm:text-base transition-colors duration-150`}
+              placeholder="Foydalanuvchi nomi"
+              autoFocus
+            />
+            {errors.username && (
+              <p className="text-danger-600 text-xs mt-1 font-medium">{errors.username.message}</p>
             )}
+          </div>
 
-            <Button
-              type="submit"
-              className="w-full py-3 bg-surface-900 hover:bg-black text-white font-bold uppercase tracking-widest text-xs rounded-[5px] transition-all"
-              isLoading={isLoading}
-            >
-              Kirish
-            </Button>
-          </motion.form>
-        </Card>
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-surface-900 dark:text-surface-200 mb-1 font-sans">
+              Parol
+            </label>
+            <div className="relative">
+              <input
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                className={`w-full px-3.5 sm:px-4 py-2.5 pr-10 rounded-xl border ${
+                  errors.password ? 'border-danger-500' : 'border-surface-300 dark:border-surface-700'
+                } bg-white dark:bg-surface-800 text-surface-900 dark:text-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-600 outline-none font-sans text-sm sm:text-base transition-colors duration-150`}
+                placeholder="Parol"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-brand-600 dark:hover:text-brand-400 focus:outline-none transition-colors duration-150"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Parolni yashirish' : "Parolni ko'rsatish"}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-danger-600 text-xs mt-1 font-medium">{errors.password.message}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold transition-colors duration-150 disabled:opacity-60 font-sans text-sm sm:text-base shadow-sm mt-2 flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                Tekshirilmoqda...
+              </>
+            ) : (
+              'Kirish'
+            )}
+          </button>
+        </form>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
 
